@@ -1,6 +1,6 @@
 /* =========================================================
-   MINDCAMPUS - COMPLETE JAVASCRIPT
-   Compatible with current MindCampus HTML
+   MINDCAMPUS - COMPLETE SCRIPT
+   Matches the current index.html exactly
    ========================================================= */
 
 
@@ -14,171 +14,181 @@ const SUPABASE_URL =
 const SUPABASE_ANON_KEY =
   "sb_publishable_KToTfVS_FwufyHAn1QUzwQ_rRdYqyIx";
 
-const sb = window.supabase.createClient(
+const sb = supabase.createClient(
   SUPABASE_URL,
   SUPABASE_ANON_KEY
 );
 
 
 /* =========================================================
-   HELPERS
+   GLOBAL VARIABLES
+   ========================================================= */
+
+let user = null;
+let signupMode = false;
+let selectedMood = null;
+
+
+/* =========================================================
+   SHORTCUTS
    ========================================================= */
 
 function $(id) {
   return document.getElementById(id);
 }
 
+
 function show(id) {
-  const el = $(id);
-  if (el) {
-    el.classList.remove("hidden");
+  const element = $(id);
+
+  if (element) {
+    element.classList.remove("hidden");
   }
 }
+
 
 function hide(id) {
-  const el = $(id);
-  if (el) {
-    el.classList.add("hidden");
+  const element = $(id);
+
+  if (element) {
+    element.classList.add("hidden");
   }
 }
 
-function setText(id, text) {
-  const el = $(id);
-  if (el) {
-    el.textContent = text;
-  }
-}
 
 function closeModals() {
-  document.querySelectorAll(".modal").forEach(modal => {
-    modal.classList.add("hidden");
-  });
+
+  document
+    .querySelectorAll(".modal")
+    .forEach(modal => {
+      modal.classList.add("hidden");
+    });
+
 }
 
 
 /* =========================================================
-   VARIABLES
+   AUTH MODAL
    ========================================================= */
 
-let user = null;
-let signup = false;
-let selectedMood = null;
+function openAuth(isSignup) {
 
+  signupMode = isSignup;
 
-/* =========================================================
-   AUTH MODE
-   ========================================================= */
-
-function authMode(isSignup) {
-
-  signup = isSignup;
-
-  setText(
-    "authEyebrow",
-    signup
-      ? "START YOUR PRIVATE SPACE"
-      : "WELCOME BACK"
-  );
-
-  setText(
-    "authTitle",
-    signup
-      ? "Create your MindCampus account"
-      : "Log in to MindCampus"
-  );
-
-
-  document
-    .querySelectorAll("#nameWrap,#collegeWrap")
-    .forEach(el => {
-      el.classList.toggle("hidden", !signup);
-    });
-
-
-  const form = $("authForm");
-
-  if (form) {
-
-    const button =
-      form.querySelector("button[type='submit']") ||
-      form.querySelector("button");
-
-    if (button) {
-
-      button.textContent =
-        signup
-          ? "Create account"
-          : "Log in";
-
-    }
+  if ($("authEyebrow")) {
+    $("authEyebrow").textContent =
+      signupMode
+        ? "START YOUR PRIVATE SPACE"
+        : "WELCOME BACK";
   }
 
 
-  setText(
-    "switch",
-    signup
-      ? "Already have an account? Log in"
-      : "New here? Create an account"
-  );
+  if ($("authTitle")) {
+    $("authTitle").textContent =
+      signupMode
+        ? "Create your MindCampus account"
+        : "Log in to MindCampus";
+  }
 
 
-  setText("authMsg", "");
+  /* Show/hide signup fields */
+
+  if ($("nameWrap")) {
+    $("nameWrap").classList.toggle(
+      "hidden",
+      !signupMode
+    );
+  }
+
+
+  if ($("collegeWrap")) {
+    $("collegeWrap").classList.toggle(
+      "hidden",
+      !signupMode
+    );
+  }
+
+
+  /* Change submit button */
+
+  const authButton =
+    $("authForm")?.querySelector(
+      "button[type='submit']"
+    );
+
+
+  if (authButton) {
+
+    authButton.textContent =
+      signupMode
+        ? "Create account"
+        : "Log in";
+
+  }
+
+
+  /* Change switch text */
+
+  if ($("switch")) {
+
+    $("switch").textContent =
+      signupMode
+        ? "Already have an account? Log in"
+        : "New here? Create an account";
+
+  }
+
+
+  if ($("authMsg")) {
+    $("authMsg").textContent = "";
+  }
+
+
+  closeModals();
 
   show("auth");
+
 }
 
 
 /* =========================================================
-   LOGIN / SIGNUP BUTTONS
+   AUTH BUTTONS
    ========================================================= */
 
-if ($("loginBtn")) {
+$("loginBtn")?.addEventListener(
+  "click",
+  () => openAuth(false)
+);
 
-  $("loginBtn").onclick = () => {
-    authMode(false);
-  };
 
-}
+$("signupBtn")?.addEventListener(
+  "click",
+  () => openAuth(true)
+);
 
-if ($("signupBtn")) {
 
-  $("signupBtn").onclick = () => {
-    authMode(true);
-  };
+$("heroSignup")?.addEventListener(
+  "click",
+  () => openAuth(true)
+);
 
-}
 
-if ($("heroSignup")) {
+$("heroLogin")?.addEventListener(
+  "click",
+  () => openAuth(false)
+);
 
-  $("heroSignup").onclick = () => {
-    authMode(true);
-  };
 
-}
+$("cta")?.addEventListener(
+  "click",
+  () => openAuth(true)
+);
 
-if ($("heroLogin")) {
 
-  $("heroLogin").onclick = () => {
-    authMode(false);
-  };
-
-}
-
-if ($("cta")) {
-
-  $("cta").onclick = () => {
-    authMode(true);
-  };
-
-}
-
-if ($("switch")) {
-
-  $("switch").onclick = () => {
-    authMode(!signup);
-  };
-
-}
+$("switch")?.addEventListener(
+  "click",
+  () => openAuth(!signupMode)
+);
 
 
 /* =========================================================
@@ -189,43 +199,58 @@ document
   .querySelectorAll("[data-close]")
   .forEach(button => {
 
-    button.onclick = () => {
-      closeModals();
-    };
+    button.addEventListener(
+      "click",
+      closeModals
+    );
 
   });
 
 
 /* =========================================================
-   CLICK OUTSIDE MODAL TO CLOSE
+   CLOSE MODAL WHEN CLICKING OUTSIDE
    ========================================================= */
 
 document
   .querySelectorAll(".modal")
   .forEach(modal => {
 
-    modal.addEventListener("click", event => {
+    modal.addEventListener(
+      "click",
+      event => {
 
-      if (event.target === modal) {
-        closeModals();
+        if (event.target === modal) {
+          closeModals();
+        }
+
       }
-
-    });
+    );
 
   });
 
 
 /* =========================================================
-   SIGNUP / LOGIN
+   LOGIN / SIGNUP FORM
    ========================================================= */
 
-if ($("authForm")) {
-
-  $("authForm").onsubmit = async event => {
+$("authForm")?.addEventListener(
+  "submit",
+  async event => {
 
     event.preventDefault();
 
-    setText("authMsg", "Please wait…");
+
+    const email =
+      $("email")?.value.trim() || "";
+
+    const password =
+      $("password")?.value || "";
+
+
+    if ($("authMsg")) {
+      $("authMsg").textContent =
+        "Please wait…";
+    }
 
 
     try {
@@ -234,20 +259,13 @@ if ($("authForm")) {
          SIGN UP
          ----------------------------------------- */
 
-      if (signup) {
+      if (signupMode) {
 
         const name =
           $("name")?.value.trim() || "";
 
         const college =
-          $("college")?.value.trim() ||
-          "XIME Chennai";
-
-        const email =
-          $("email")?.value.trim() || "";
-
-        const password =
-          $("password")?.value || "";
+          $("college")?.value.trim() || "";
 
 
         const response =
@@ -278,15 +296,14 @@ if ($("authForm")) {
 
 
         /*
-         Supabase email confirmation
+         If email confirmation is enabled,
+         Supabase won't give us a session yet.
         */
 
         if (!response.data.session) {
 
-          setText(
-            "authMsg",
-            "Account created. Check your email, then log in."
-          );
+          $("authMsg").textContent =
+            "Account created. Check your email, then log in.";
 
           return;
 
@@ -300,13 +317,6 @@ if ($("authForm")) {
          ----------------------------------------- */
 
       else {
-
-        const email =
-          $("email")?.value.trim() || "";
-
-        const password =
-          $("password")?.value || "";
-
 
         const response =
           await sb.auth.signInWithPassword({
@@ -325,18 +335,24 @@ if ($("authForm")) {
       }
 
 
-      closeModals();
+      /* -----------------------------------------
+         GET CURRENT USER
+         ----------------------------------------- */
 
-
-      const session =
+      const sessionResponse =
         await sb.auth.getSession();
 
 
       user =
-        session.data.session?.user || null;
+        sessionResponse
+          .data
+          .session
+          ?.user || null;
 
 
-      await updateUI();
+      closeModals();
+
+      updateNavigation();
 
       await loadDashboard();
 
@@ -351,24 +367,25 @@ if ($("authForm")) {
       );
 
 
-      setText(
-        "authMsg",
-        error.message ||
-        "Something went wrong."
-      );
+      if ($("authMsg")) {
+
+        $("authMsg").textContent =
+          error.message ||
+          "Something went wrong.";
+
+      }
 
     }
 
-  };
-
-}
+  }
+);
 
 
 /* =========================================================
-   UPDATE NAVIGATION UI
+   UPDATE NAVIGATION
    ========================================================= */
 
-async function updateUI() {
+function updateNavigation() {
 
   if (!user) {
 
@@ -416,30 +433,56 @@ async function updateUI() {
    USER DROPDOWN
    ========================================================= */
 
-if ($("avatar")) {
+$("avatar")?.addEventListener(
+  "click",
+  event => {
 
-  $("avatar").onclick = () => {
+    event.stopPropagation();
 
-    if ($("drop")) {
-      $("drop").classList.toggle("hidden");
-    }
+    $("drop")?.classList.toggle(
+      "hidden"
+    );
 
-  };
+  }
+);
 
-}
+
+/* =========================================================
+   DASHBOARD BUTTON IN DROPDOWN
+   ========================================================= */
+
+$("dashboardBtn")?.addEventListener(
+  "click",
+  async () => {
+
+    hide("drop");
+
+    await openDashboard();
+
+  }
+);
 
 
-if ($("logoutBtn")) {
+/* =========================================================
+   LOGOUT
+   ========================================================= */
 
-  $("logoutBtn").onclick = async () => {
+$("logoutBtn")?.addEventListener(
+  "click",
+  async () => {
 
     try {
 
       await sb.auth.signOut();
 
-    } catch (error) {
+    }
 
-      console.error(error);
+    catch (error) {
+
+      console.error(
+        "Logout error:",
+        error
+      );
 
     }
 
@@ -448,32 +491,14 @@ if ($("logoutBtn")) {
 
     selectedMood = null;
 
-    hide("drop");
-
     closeModals();
 
-    await updateUI();
-
-  };
-
-}
-
-
-/* =========================================================
-   DASHBOARD BUTTON
-   ========================================================= */
-
-if ($("dashboardBtn")) {
-
-  $("dashboardBtn").onclick = async () => {
-
     hide("drop");
 
-    await openDashboard();
+    updateNavigation();
 
-  };
-
-}
+  }
+);
 
 
 /* =========================================================
@@ -484,12 +509,14 @@ async function openDashboard() {
 
   if (!user) {
 
-    authMode(false);
+    openAuth(false);
 
     return;
 
   }
 
+
+  closeModals();
 
   show("dash");
 
@@ -499,55 +526,7 @@ async function openDashboard() {
 
 
 /* =========================================================
-   GET PROFILE
-   ========================================================= */
-
-async function getProfile() {
-
-  if (!user) {
-    return null;
-  }
-
-
-  try {
-
-    const response =
-      await sb
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .maybeSingle();
-
-
-    if (response.error) {
-
-      console.error(
-        "Profile error:",
-        response.error
-      );
-
-      return null;
-
-    }
-
-
-    return response.data;
-
-  }
-
-  catch (error) {
-
-    console.error(error);
-
-    return null;
-
-  }
-
-}
-
-
-/* =========================================================
-   LOAD DASHBOARD
+   LOAD DASHBOARD DATA
    ========================================================= */
 
 async function loadDashboard() {
@@ -560,84 +539,27 @@ async function loadDashboard() {
   try {
 
     /* -----------------------------------------
-       PROFILE
+       WELCOME
        ----------------------------------------- */
 
-    const profile =
-      await getProfile();
-
-
-    const studentName =
-      profile?.full_name ||
+    const name =
       user.user_metadata?.full_name ||
       user.email?.split("@")[0] ||
       "Student";
 
 
-    const college =
-      profile?.college ||
-      user.user_metadata?.college ||
-      "XIME Chennai";
+    if ($("welcome")) {
 
-
-    /* -----------------------------------------
-       WELCOME MESSAGE
-       ----------------------------------------- */
-
-    setText(
-      "welcome",
-      "Welcome back, " +
-      studentName.split(" ")[0] +
-      " 👋"
-    );
-
-
-    /* -----------------------------------------
-       OPTIONAL PROFILE INFORMATION
-       ----------------------------------------- */
-
-    setText(
-      "dashName",
-      studentName
-    );
-
-    setText(
-      "dashCollege",
-      college
-    );
-
-
-    if ($("dashRoll")) {
-
-      $("dashRoll").textContent =
-        profile?.roll_number ||
-        "Roll number not added";
-
-    }
-
-
-    if ($("bigAvatar")) {
-
-      $("bigAvatar").textContent =
-        studentName.charAt(0).toUpperCase();
-
-    }
-
-
-    if ($("studentMeta")) {
-
-      $("studentMeta").textContent =
-        profile?.programme
-          ? profile.programme +
-            " · " +
-            college
-          : college;
+      $("welcome").textContent =
+        "Welcome back, " +
+        name.split(" ")[0] +
+        " 👋";
 
     }
 
 
     /* -----------------------------------------
-       GET MOOD CHECK-INS
+       GET CHECK-INS
        ----------------------------------------- */
 
     const moodResponse =
@@ -647,13 +569,14 @@ async function loadDashboard() {
         .eq("user_id", user.id)
         .order("created_at", {
           ascending: false
-        });
+        })
+        .limit(8);
 
 
     if (moodResponse.error) {
 
       console.error(
-        "Mood loading error:",
+        "Mood error:",
         moodResponse.error
       );
 
@@ -681,7 +604,7 @@ async function loadDashboard() {
     if (appointmentResponse.error) {
 
       console.error(
-        "Appointment loading error:",
+        "Appointment error:",
         appointmentResponse.error
       );
 
@@ -693,52 +616,43 @@ async function loadDashboard() {
 
 
     /* -----------------------------------------
-       LATEST MOOD
+       LATEST CHECK-IN
        ----------------------------------------- */
 
-    if ($("latest")) {
+    if (moods.length > 0) {
 
       $("latest").textContent =
-        moods.length
-          ? moods[0].mood
-          : "—";
+        moods[0].mood;
 
-    }
-
-
-    if ($("latestDate")) {
 
       $("latestDate").textContent =
-        moods.length
-          ? formatDateTime(
-              moods[0].created_at
-            )
-          : "No check-ins yet";
+        formatDateTime(
+          moods[0].created_at
+        );
+
+    }
+
+    else {
+
+      $("latest").textContent =
+        "—";
+
+
+      $("latestDate").textContent =
+        "No check-ins yet";
 
     }
 
 
     /* -----------------------------------------
-       CHECK-IN COUNT
-       ----------------------------------------- */
-
-    if ($("count")) {
-
-      $("count").textContent =
-        moods.length;
-
-    }
-
-
-    /* -----------------------------------------
-       UPCOMING APPOINTMENT
+       FIND NEXT APPOINTMENT
        ----------------------------------------- */
 
     const now =
       new Date();
 
 
-    const upcoming =
+    const futureAppointments =
       appointments
         .filter(appointment => {
 
@@ -772,6 +686,7 @@ async function loadDashboard() {
               a.appointment_time
             );
 
+
           const dateB =
             new Date(
               b.appointment_date +
@@ -779,78 +694,73 @@ async function loadDashboard() {
               b.appointment_time
             );
 
+
           return dateA - dateB;
 
         });
 
 
     const nextAppointment =
-      upcoming[0] || null;
+      futureAppointments[0];
 
 
     /* -----------------------------------------
-       SHOW UPCOMING SESSION
+       UPCOMING SESSION
        ----------------------------------------- */
 
-    if ($("next")) {
+    if (nextAppointment) {
 
       $("next").textContent =
-        nextAppointment
-          ? nextAppointment.support_type
-          : "—";
+        nextAppointment.support_type;
+
+
+      $("nextDate").textContent =
+        formatAppointment(
+          nextAppointment
+        );
 
     }
 
+    else {
 
-    if ($("nextDate")) {
+      $("next").textContent =
+        "—";
+
 
       $("nextDate").textContent =
-        nextAppointment
-          ? formatAppointment(
-              nextAppointment
-            )
-          : "No appointment booked";
+        "No appointment booked";
 
     }
 
 
     /* -----------------------------------------
-       RECENT CHECK-INS
+       HISTORY
        ----------------------------------------- */
 
-    if ($("history")) {
+    if (moods.length === 0) {
 
-      if (!moods.length) {
+      $("history").innerHTML =
+        "<p>No check-ins yet.</p>";
 
-        $("history").innerHTML =
-          "<p>No check-ins yet.</p>";
+    }
 
-      }
+    else {
 
-      else {
+      $("history").innerHTML =
+        moods
+          .map(item => {
 
-        /*
-         Show latest 8
-        */
+            return `
+              <p>
+                ${escapeHTML(item.mood)}
+                <span style="float:right">
+                  ${formatDateOnly(item.created_at)}
+                </span>
+              </p>
+            `;
 
-        $("history").innerHTML =
-          moods
-            .slice(0, 8)
-            .map(item => {
-
-              return `
-                <p>
-                  ${escapeHTML(item.mood)}
-                  <span style="float:right">
-                    ${formatDateOnly(item.created_at)}
-                  </span>
-                </p>
-              `;
-
-            })
-            .join("");
-
-      }
+          })
+          .join("");
 
     }
 
@@ -859,7 +769,7 @@ async function loadDashboard() {
   catch (error) {
 
     console.error(
-      "Dashboard error:",
+      "Dashboard loading error:",
       error
     );
 
@@ -872,19 +782,19 @@ async function loadDashboard() {
    REFRESH BUTTON
    ========================================================= */
 
-if ($("refresh")) {
-
-  $("refresh").onclick = async () => {
+$("refresh")?.addEventListener(
+  "click",
+  async () => {
 
     const button =
       $("refresh");
 
 
-    button.disabled = true;
-
-    const oldText =
+    const originalText =
       button.textContent;
 
+
+    button.disabled = true;
 
     button.textContent =
       "Refreshing…";
@@ -902,72 +812,75 @@ if ($("refresh")) {
 
     }
 
-    finally {
 
-      button.textContent =
-        oldText || "Refresh";
+    button.disabled = false;
 
-      button.disabled = false;
+    button.textContent =
+      originalText;
 
-    }
-
-  };
-
-}
+  }
+);
 
 
 /* =========================================================
-   MOOD SELECTION
+   MOOD BUTTONS
    ========================================================= */
 
 document
   .querySelectorAll("[data-mood]")
   .forEach(button => {
 
-    button.onclick = () => {
+    button.addEventListener(
+      "click",
+      () => {
 
-      document
-        .querySelectorAll("[data-mood]")
-        .forEach(item => {
+        document
+          .querySelectorAll(
+            "[data-mood]"
+          )
+          .forEach(item => {
 
-          item.classList.remove(
-            "selected"
-          );
+            item.classList.remove(
+              "selected"
+            );
 
-        });
-
-
-      button.classList.add(
-        "selected"
-      );
-
-
-      selectedMood =
-        button.dataset.mood;
+          });
 
 
-      setText(
-        "checkMsg",
-        "Selected: " +
-        selectedMood
-      );
+        button.classList.add(
+          "selected"
+        );
 
-    };
+
+        selectedMood =
+          button.dataset.mood;
+
+
+        if ($("checkMsg")) {
+
+          $("checkMsg").textContent =
+            "Selected: " +
+            selectedMood;
+
+        }
+
+      }
+    );
 
   });
 
 
 /* =========================================================
-   SAVE MOOD
+   SAVE MOOD CHECK-IN
    ========================================================= */
 
-if ($("checkin")) {
-
-  $("checkin").onclick = async () => {
+$("checkin")?.addEventListener(
+  "click",
+  async () => {
 
     if (!user) {
 
-      authMode(true);
+      openAuth(true);
 
       return;
 
@@ -976,20 +889,18 @@ if ($("checkin")) {
 
     if (!selectedMood) {
 
-      setText(
-        "checkMsg",
-        "Choose a mood first."
-      );
+      $("checkMsg").textContent =
+        "Choose a mood first.";
 
       return;
 
     }
 
 
-    setText(
-      "checkMsg",
-      "Saving…"
-    );
+    $("checkin").disabled = true;
+
+    $("checkin").textContent =
+      "Saving…";
 
 
     try {
@@ -999,9 +910,11 @@ if ($("checkin")) {
           .from("mood_checkins")
           .insert({
 
-            user_id: user.id,
+            user_id:
+              user.id,
 
-            mood: selectedMood
+            mood:
+              selectedMood
 
           });
 
@@ -1011,16 +924,16 @@ if ($("checkin")) {
       }
 
 
-      setText(
-        "checkMsg",
-        "Saved privately to your account ✓"
-      );
+      $("checkMsg").textContent =
+        "Saved privately to your account ✓";
 
 
-      /* Clear selected mood */
+      /* Clear selection */
 
       document
-        .querySelectorAll("[data-mood]")
+        .querySelectorAll(
+          "[data-mood]"
+        )
         .forEach(button => {
 
           button.classList.remove(
@@ -1041,38 +954,72 @@ if ($("checkin")) {
 
     catch (error) {
 
-      console.error(error);
-
-      setText(
-        "checkMsg",
-        error.message ||
-        "Could not save check-in."
+      console.error(
+        "Check-in error:",
+        error
       );
+
+
+      $("checkMsg").textContent =
+        error.message ||
+        "Could not save check-in.";
 
     }
 
-  };
 
-}
+    $("checkin").disabled = false;
+
+    $("checkin").textContent =
+      "Save check-in";
+
+  }
+);
 
 
 /* =========================================================
-   OPEN BOOKING MODAL
+   BOOKING - IMPORTANT
    ========================================================= */
+
+/*
+   This function is used by BOTH:
+   1. Dashboard "Book a session"
+   2. Homepage "Book a session"
+*/
 
 function openBooking() {
 
   if (!user) {
 
-    authMode(true);
+    openAuth(true);
 
     return;
 
   }
 
 
-  resetBooking();
+  /*
+   Close dashboard first.
+   This prevents the dashboard modal from
+   sitting on top of the booking modal.
+  */
 
+  closeModals();
+
+
+  /*
+   Clear previous booking message.
+  */
+
+  if ($("bookMsg")) {
+
+    $("bookMsg").textContent = "";
+
+  }
+
+
+  /*
+   Open booking modal.
+  */
 
   show("booking");
 
@@ -1080,684 +1027,342 @@ function openBooking() {
 
 
 /* =========================================================
-   BOOK BUTTON
+   DASHBOARD BOOK BUTTON
    ========================================================= */
 
-if ($("bookBtn")) {
+$("bookBtn")?.addEventListener(
+  "click",
+  event => {
 
-  $("bookBtn").onclick = () => {
+    event.preventDefault();
+
+    event.stopPropagation();
 
     openBooking();
 
-  };
-
-}
+  }
+);
 
 
 /* =========================================================
-   OTHER BOOK BUTTONS
+   HOMEPAGE BOOK BUTTONS
    ========================================================= */
 
 document
   .querySelectorAll(".book")
   .forEach(button => {
 
-    button.onclick = () => {
+    button.addEventListener(
+      "click",
+      event => {
 
-      openBooking();
+        event.preventDefault();
 
-    };
+        event.stopPropagation();
+
+        openBooking();
+
+      }
+    );
 
   });
-
-
-/* =========================================================
-   RESET BOOKING FORM
-   ========================================================= */
-
-function resetBooking() {
-
-  const form =
-    $("bookingForm");
-
-
-  if (form) {
-
-    form.reset();
-
-  }
-
-
-  /*
-   Reset support type
-   */
-
-  if ($("type")) {
-
-    $("type").selectedIndex = 0;
-
-  }
-
-
-  /*
-   Clear date
-   */
-
-  if ($("date")) {
-
-    $("date").value = "";
-
-  }
-
-
-  /*
-   Clear time
-   */
-
-  if ($("time")) {
-
-    $("time").value = "";
-
-  }
-
-
-  setText(
-    "bookMsg",
-    ""
-  );
-
-}
 
 
 /* =========================================================
    BOOKING FORM
    ========================================================= */
 
-if ($("bookingForm")) {
+$("bookingForm")?.addEventListener(
+  "submit",
+  async event => {
 
-  $("bookingForm").onsubmit =
-    async event => {
+    event.preventDefault();
 
-      event.preventDefault();
 
+    if (!user) {
 
-      if (!user) {
+      openAuth(true);
 
-        authMode(true);
-
-        return;
-
-      }
-
-
-      const supportType =
-        $("type")?.value || "";
-
-
-      const appointmentDate =
-        $("date")?.value || "";
-
-
-      const appointmentTime =
-        $("time")?.value || "";
-
-
-      /* -----------------------------------------
-         VALIDATION
-         ----------------------------------------- */
-
-      if (
-        !supportType ||
-        !appointmentDate ||
-        !appointmentTime
-      ) {
-
-        setText(
-          "bookMsg",
-          "Please fill in all the details."
-        );
-
-        return;
-
-      }
-
-
-      /* -----------------------------------------
-         PREVENT PAST APPOINTMENTS
-         ----------------------------------------- */
-
-      const selectedDateTime =
-        new Date(
-          appointmentDate +
-          "T" +
-          appointmentTime
-        );
-
-
-      if (
-        selectedDateTime <
-        new Date()
-      ) {
-
-        setText(
-          "bookMsg",
-          "Please choose a future date and time."
-        );
-
-        return;
-
-      }
-
-
-      setText(
-        "bookMsg",
-        "Saving your appointment…"
-      );
-
-
-      try {
-
-        /* -----------------------------------------
-           INSERT INTO SUPABASE
-           ----------------------------------------- */
-
-        const response =
-          await sb
-            .from("appointments")
-            .insert({
-
-              user_id:
-                user.id,
-
-              support_type:
-                supportType,
-
-              appointment_date:
-                appointmentDate,
-
-              appointment_time:
-                appointmentTime,
-
-              status:
-                "requested"
-
-            });
-
-
-        if (response.error) {
-          throw response.error;
-        }
-
-
-        /* -----------------------------------------
-           SUCCESS
-           ----------------------------------------- */
-
-        setText(
-          "bookMsg",
-          "Appointment booked ✓"
-        );
-
-
-        /*
-         IMPORTANT:
-         Clear the booking form immediately.
-        */
-
-        resetBooking();
-
-
-        /*
-         Reload dashboard directly
-         from Supabase.
-        */
-
-        await loadDashboard();
-
-
-        /*
-         Wait briefly so user sees success.
-        */
-
-        setTimeout(() => {
-
-          closeModals();
-
-          show("dash");
-
-          /*
-           One final refresh after opening
-           dashboard.
-          */
-
-          loadDashboard();
-
-        }, 700);
-
-      }
-
-
-      catch (error) {
-
-        console.error(
-          "Booking error:",
-          error
-        );
-
-
-        setText(
-          "bookMsg",
-          error.message ||
-          "Could not book appointment."
-        );
-
-      }
-
-    };
-
-}
-
-
-/* =========================================================
-   PROFILE
-   ========================================================= */
-
-async function openProfile() {
-
-  if (!user) {
-
-    authMode(true);
-
-    return;
-
-  }
-
-
-  const profile =
-    await getProfile();
-
-
-  if ($("pName")) {
-
-    $("pName").value =
-      profile?.full_name ||
-      user.user_metadata?.full_name ||
-      "";
-
-  }
-
-
-  if ($("pRoll")) {
-
-    $("pRoll").value =
-      profile?.roll_number ||
-      "";
-
-  }
-
-
-  if ($("pBatch")) {
-
-    $("pBatch").value =
-      profile?.batch ||
-      "";
-
-  }
-
-
-  if ($("pProgramme")) {
-
-    $("pProgramme").value =
-      profile?.programme ||
-      "";
-
-  }
-
-
-  if ($("pCollege")) {
-
-    $("pCollege").value =
-      profile?.college ||
-      user.user_metadata?.college ||
-      "XIME Chennai";
-
-  }
-
-
-  if ($("pPhone")) {
-
-    $("pPhone").value =
-      profile?.phone ||
-      "";
-
-  }
-
-
-  setText(
-    "profileMsg",
-    ""
-  );
-
-
-  show("profile");
-
-}
-
-
-/* =========================================================
-   PROFILE BUTTONS
-   ========================================================= */
-
-if ($("profileBtn")) {
-
-  $("profileBtn").onclick = async () => {
-
-    hide("drop");
-
-    await openProfile();
-
-  };
-
-}
-
-
-if ($("editProfile")) {
-
-  $("editProfile").onclick =
-    async () => {
-
-      await openProfile();
-
-    };
-
-}
-
-
-/* =========================================================
-   SAVE PROFILE
-   ========================================================= */
-
-if ($("profileForm")) {
-
-  $("profileForm").onsubmit =
-    async event => {
-
-      event.preventDefault();
-
-
-      if (!user) {
-
-        authMode(true);
-
-        return;
-
-      }
-
-
-      setText(
-        "profileMsg",
-        "Saving…"
-      );
-
-
-      try {
-
-        const profileData = {
-
-          id: user.id,
-
-          full_name:
-            $("pName")?.value.trim() ||
-            "",
-
-          roll_number:
-            $("pRoll")?.value.trim() ||
-            "",
-
-          batch:
-            $("pBatch")?.value.trim() ||
-            "",
-
-          programme:
-            $("pProgramme")?.value.trim() ||
-            "",
-
-          college:
-            $("pCollege")?.value.trim() ||
-            "",
-
-          phone:
-            $("pPhone")?.value.trim() ||
-            "",
-
-          updated_at:
-            new Date().toISOString()
-
-        };
-
-
-        const response =
-          await sb
-            .from("profiles")
-            .upsert(
-              profileData,
-              {
-                onConflict: "id"
-              }
-            );
-
-
-        if (response.error) {
-          throw response.error;
-        }
-
-
-        /*
-         Also update login metadata
-        */
-
-        await sb.auth.updateUser({
-
-          data: {
-
-            full_name:
-              profileData.full_name,
-
-            college:
-              profileData.college
-
-          }
-
-        });
-
-
-        setText(
-          "profileMsg",
-          "Profile saved ✓"
-        );
-
-
-        await loadDashboard();
-
-        await updateUI();
-
-
-        setTimeout(() => {
-
-          closeModals();
-
-          show("dash");
-
-        }, 700);
-
-      }
-
-
-      catch (error) {
-
-        console.error(
-          "Profile error:",
-          error
-        );
-
-
-        setText(
-          "profileMsg",
-          error.message ||
-          "Could not save profile."
-        );
-
-      }
-
-    };
-
-}
-
-
-/* =========================================================
-   DASHBOARD CHECK-IN BUTTON
-   ========================================================= */
-
-if ($("dashCheckin")) {
-
-  $("dashCheckin").onclick = () => {
-
-    closeModals();
-
-    const firstMood =
-      document.querySelector(
-        "[data-mood]"
-      );
-
-
-    if (firstMood) {
-
-      firstMood.scrollIntoView({
-        behavior: "smooth",
-        block: "center"
-      });
+      return;
 
     }
 
-  };
 
-}
-
-
-/* =========================================================
-   RESOURCE BUTTONS
-   ========================================================= */
-
-function resource(title, text) {
-
-  const toast =
-    $("toast");
+    const supportType =
+      $("type").value;
 
 
-  if (!toast) {
-
-    alert(
-      title +
-      "\n\n" +
-      text
-    );
-
-    return;
-
-  }
+    const appointmentDate =
+      $("date").value;
 
 
-  toast.innerHTML =
-    "<strong>" +
-    escapeHTML(title) +
-    "</strong><br>" +
-    escapeHTML(text);
+    const appointmentTime =
+      $("time").value;
 
 
-  show("toast");
+    /* -----------------------------------------
+       VALIDATION
+       ----------------------------------------- */
+
+    if (
+      !supportType ||
+      !appointmentDate ||
+      !appointmentTime
+    ) {
+
+      $("bookMsg").textContent =
+        "Please fill in all the details.";
+
+      return;
+
+    }
 
 
-  setTimeout(() => {
+    /* -----------------------------------------
+       CHECK PAST DATE/TIME
+       ----------------------------------------- */
 
-    hide("toast");
-
-  }, 5000);
-
-}
-
-
-/* =========================================================
-   DEMO BUTTON
-   ========================================================= */
-
-if ($("demo")) {
-
-  $("demo").onclick = () => {
-
-    show("demoModal");
-
-  };
-
-}
-
-
-if ($("demoForm")) {
-
-  $("demoForm").onsubmit =
-    event => {
-
-      event.preventDefault();
-
-
-      setText(
-        "demoMsg",
-        "Demo request captured ✓"
+    const selectedDateTime =
+      new Date(
+        appointmentDate +
+        "T" +
+        appointmentTime
       );
 
 
-      event.target.reset();
+    if (
+      selectedDateTime <
+      new Date()
+    ) {
 
-    };
+      $("bookMsg").textContent =
+        "Please choose a future date and time.";
 
-}
+      return;
+
+    }
+
+
+    /* -----------------------------------------
+       DISABLE BUTTON
+       ----------------------------------------- */
+
+    const button =
+      $("bookingForm")
+        .querySelector(
+          "button[type='submit']"
+        );
+
+
+    if (button) {
+
+      button.disabled = true;
+
+      button.textContent =
+        "Saving…";
+
+    }
+
+
+    $("bookMsg").textContent =
+      "Saving your appointment…";
+
+
+    try {
+
+      /* -----------------------------------------
+         SAVE TO SUPABASE
+         ----------------------------------------- */
+
+      const response =
+        await sb
+          .from("appointments")
+          .insert({
+
+            user_id:
+              user.id,
+
+            support_type:
+              supportType,
+
+            appointment_date:
+              appointmentDate,
+
+            appointment_time:
+              appointmentTime,
+
+            status:
+              "requested"
+
+          });
+
+
+      if (response.error) {
+        throw response.error;
+      }
+
+
+      /* -----------------------------------------
+         SUCCESS
+         ----------------------------------------- */
+
+      $("bookMsg").textContent =
+        "Appointment saved ✓";
+
+
+      /*
+       Reload dashboard immediately
+      */
+
+      await loadDashboard();
+
+
+      /*
+       Clear the form
+      */
+
+      $("bookingForm").reset();
+
+
+      /*
+       After a short delay:
+       close booking and show dashboard
+      */
+
+      setTimeout(async () => {
+
+        closeModals();
+
+        show("dash");
+
+        await loadDashboard();
+
+      }, 700);
+
+    }
+
+
+    catch (error) {
+
+      console.error(
+        "Booking error:",
+        error
+      );
+
+
+      $("bookMsg").textContent =
+        error.message ||
+        "Could not save appointment.";
+
+    }
+
+
+    finally {
+
+      if (button) {
+
+        button.disabled = false;
+
+        button.textContent =
+          "Save appointment";
+
+      }
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   INSTITUTION DEMO
+   ========================================================= */
+
+$("demo")?.addEventListener(
+  "click",
+  () => {
+
+    closeModals();
+
+    show("demoModal");
+
+  }
+);
+
+
+/* =========================================================
+   DEMO FORM
+   ========================================================= */
+
+$("demoForm")?.addEventListener(
+  "submit",
+  event => {
+
+    event.preventDefault();
+
+
+    $("demoMsg").textContent =
+      "Demo request captured ✓";
+
+
+    event.target.reset();
+
+  }
+);
 
 
 /* =========================================================
    DATE HELPERS
    ========================================================= */
 
-function formatDateOnly(dateString) {
+function formatDateOnly(date) {
 
   try {
 
     return new Date(
-      dateString
-    ).toLocaleDateString();
+      date
+    ).toLocaleDateString(
+      "en-IN",
+      {
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+      }
+    );
 
   }
 
   catch {
 
-    return dateString;
+    return date;
 
   }
 
 }
 
 
-function formatDateTime(dateString) {
+function formatDateTime(date) {
 
   try {
 
     return new Date(
-      dateString
-    ).toLocaleString();
+      date
+    ).toLocaleString(
+      "en-IN",
+      {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit"
+      }
+    );
 
   }
 
   catch {
 
-    return dateString;
+    return date;
 
   }
 
@@ -1777,16 +1382,18 @@ function formatAppointment(appointment) {
 
 
     return date.toLocaleDateString(
-      undefined,
+      "en-IN",
       {
-        year: "numeric",
+        day: "2-digit",
         month: "short",
-        day: "numeric"
+        year: "numeric"
       }
-    ) +
-    " · " +
+    )
+    +
+    " · "
+    +
     date.toLocaleTimeString(
-      undefined,
+      "en-IN",
       {
         hour: "numeric",
         minute: "2-digit"
@@ -1809,33 +1416,23 @@ function formatAppointment(appointment) {
 
 
 /* =========================================================
-   SECURITY / HTML ESCAPING
+   BASIC HTML ESCAPING
    ========================================================= */
 
 function escapeHTML(value) {
 
-  if (
-    value === null ||
-    value === undefined
-  ) {
-
-    return "";
-
-  }
-
-
-  return String(value)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 
 }
 
 
 /* =========================================================
-   KEYBOARD ESCAPE
+   ESC KEY CLOSE
    ========================================================= */
 
 document.addEventListener(
@@ -1853,10 +1450,10 @@ document.addEventListener(
 
 
 /* =========================================================
-   START APPLICATION
+   INITIALIZE APP
    ========================================================= */
 
-(async function startApp() {
+async function initializeApp() {
 
   try {
 
@@ -1865,19 +1462,21 @@ document.addEventListener(
 
 
     user =
-      response.data.session?.user ||
-      null;
+      response
+        .data
+        .session
+        ?.user || null;
 
 
-    await updateUI();
+    updateNavigation();
 
+
+    /*
+     If already logged in, load data
+     but don't automatically open dashboard.
+    */
 
     if (user) {
-
-      /*
-       Don't automatically open dashboard.
-       Just make sure the data is ready.
-      */
 
       await loadDashboard();
 
@@ -1885,32 +1484,37 @@ document.addEventListener(
 
 
     /*
-     Listen for login/logout changes.
+     Watch authentication changes.
     */
 
     sb.auth.onAuthStateChange(
       async (_event, session) => {
 
         user =
-          session?.user ||
-          null;
+          session?.user || null;
 
 
-        await updateUI();
+        updateNavigation();
 
       }
     );
 
   }
 
-
   catch (error) {
 
     console.error(
-      "MindCampus startup error:",
+      "Initialization error:",
       error
     );
 
   }
 
-})();
+}
+
+
+/* =========================================================
+   START
+   ========================================================= */
+
+initializeApp();
