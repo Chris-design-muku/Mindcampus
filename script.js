@@ -1,261 +1,354 @@
-// =========================================================
-// MINDCAMPUS — COMPLETE SCRIPT
-// =========================================================
+/* =========================================================
+   MINDCAMPUS — SCRIPT.JS
+   ========================================================= */
 
+/* =========================
+   SUPABASE
+   ========================= */
 
-// =========================================================
-// SUPABASE
-// =========================================================
+const SUPABASE_URL = "https://tfidkfvuzsfvebstbgcv.supabase.co";
 
-const SUPABASE_URL =
-  "https://tfidkfvuzsfvebstbgcv.supabase.co";
-
-const SUPABASE_ANON_KEY =
+const SUPABASE_KEY =
   "sb_publishable_KToTfVS_FwufyHAn1QUzwQ_rRdYqyIx";
 
-const ready =
-  !SUPABASE_URL.startsWith("YOUR_") &&
-  !SUPABASE_ANON_KEY.startsWith("YOUR_");
-
-const sb = ready
-  ? supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_ANON_KEY
-    )
-  : null;
+const supabaseClient =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
 
 
-// =========================================================
-// VARIABLES
-// =========================================================
+/* =========================
+   HELPERS
+   ========================= */
 
-let user = null;
-let signup = false;
-let mood = null;
+const $ = (id) => document.getElementById(id);
 
+function show(id) {
+  const el = $(id);
+  if (el) el.classList.remove("hidden");
+}
 
-// =========================================================
-// HELPERS
-// =========================================================
+function hide(id) {
+  const el = $(id);
+  if (el) el.classList.add("hidden");
+}
 
-const $ = id => document.getElementById(id);
+function closeModals() {
+  document.querySelectorAll(".modal").forEach((modal) => {
+    modal.classList.add("hidden");
+  });
+}
 
-const show = id => {
-  const element = $(id);
-  if (element) {
-    element.classList.remove("hidden");
-  }
-};
-
-const hide = id => {
-  const element = $(id);
-  if (element) {
-    element.classList.add("hidden");
-  }
-};
-
-const closeModals = () => {
-
-  document
-    .querySelectorAll(".modal")
-    .forEach(modal => {
-      modal.classList.add("hidden");
-    });
-
-};
-
-
-// =========================================================
-// AUTH MODE
-// =========================================================
-
-function authMode(isSignup) {
-
-  signup = isSignup;
-
-  $("authEyebrow").textContent =
-    signup
-      ? "START YOUR PRIVATE SPACE"
-      : "WELCOME BACK";
-
-
-  $("authTitle").textContent =
-    signup
-      ? "Create your MindCampus account"
-      : "Log in to MindCampus";
-
-
-  document
-    .querySelectorAll("#nameWrap,#collegeWrap")
-    .forEach(element => {
-
-      element.classList.toggle(
-        "hidden",
-        !signup
-      );
-
-    });
-
-
-  $("authForm")
-    .querySelector("button")
-    .textContent =
-      signup
-        ? "Create account"
-        : "Log in";
-
-
-  $("switch").textContent =
-    signup
-      ? "Already have an account? Log in"
-      : "New here? Create an account";
-
-
-  $("authMsg").textContent = "";
-
-  show("auth");
-
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 
-// =========================================================
-// LOGIN / SIGNUP BUTTONS
-// =========================================================
+/* =========================
+   CURRENT USER
+   ========================= */
 
-$("loginBtn")?.addEventListener(
-  "click",
-  () => {
-    authMode(false);
-  }
-);
+let user = null;
+let selectedMood = null;
 
 
-$("signupBtn")?.addEventListener(
-  "click",
-  () => {
-    authMode(true);
-  }
-);
+/* =========================
+   PAGE SWITCHING
+   ========================= */
 
+/*
+   LOGGED OUT:
+   Landing page visible
+   Dashboard hidden
 
-$("heroSignup")?.addEventListener(
-  "click",
-  () => {
-    authMode(true);
-  }
-);
+   LOGGED IN:
+   Landing page hidden
+   Dashboard visible
+*/
 
+function showLandingPage() {
+  hide("dashboardPage");
+  show("landingPage");
 
-$("heroLogin")?.addEventListener(
-  "click",
-  () => {
-    authMode(false);
-  }
-);
+  closeModals();
 
-
-$("cta")?.addEventListener(
-  "click",
-  () => {
-    authMode(true);
-  }
-);
-
-
-$("switch")?.addEventListener(
-  "click",
-  () => {
-    authMode(!signup);
-  }
-);
-
-
-// =========================================================
-// CLOSE MODALS
-// =========================================================
-
-document
-  .querySelectorAll("[data-close]")
-  .forEach(button => {
-
-    button.addEventListener(
-      "click",
-      closeModals
-    );
-
+  window.scrollTo({
+    top: 0,
+    behavior: "instant"
   });
+}
 
 
-document
-  .querySelectorAll(".modal")
-  .forEach(modal => {
+function showDashboardPage() {
+  hide("landingPage");
+  show("dashboardPage");
 
-    modal.addEventListener(
-      "click",
-      event => {
+  closeModals();
 
-        if (event.target === modal) {
-          closeModals();
-        }
-
-      }
-    );
-
+  window.scrollTo({
+    top: 0,
+    behavior: "instant"
   });
+}
 
 
-// =========================================================
-// AUTH FORM
-// =========================================================
+/* =========================
+   AUTH UI
+   ========================= */
+
+function updateAuthUI() {
+
+  if (user) {
+
+    /* Landing page buttons */
+    hide("loginBtn");
+    hide("signupBtn");
+    hide("heroSignup");
+    hide("heroLogin");
+    hide("cta");
+
+    /* Old user menu */
+    show("userMenu");
+
+    const email =
+      user.email ||
+      "Student";
+
+    const name =
+      user.user_metadata?.full_name ||
+      email.split("@")[0] ||
+      "Student";
+
+    if ($("userLabel")) {
+      $("userLabel").textContent = name;
+    }
+
+    if ($("avatar")) {
+      $("avatar").textContent =
+        name.charAt(0).toUpperCase();
+    }
+
+    /* New dashboard */
+    if ($("dashboardAvatar")) {
+      $("dashboardAvatar").textContent =
+        name.charAt(0).toUpperCase();
+    }
+
+  } else {
+
+    /* Landing page buttons */
+    show("loginBtn");
+    show("signupBtn");
+    show("heroSignup");
+    show("heroLogin");
+    show("cta");
+
+    /* User menu */
+    hide("userMenu");
+  }
+}
+
+
+/* =========================
+   OPEN AUTH
+   ========================= */
+
+function openLogin() {
+
+  closeModals();
+
+  show("auth");
+
+  if ($("authEyebrow")) {
+    $("authEyebrow").textContent =
+      "WELCOME BACK";
+  }
+
+  if ($("authTitle")) {
+    $("authTitle").textContent =
+      "Log in to MindCampus";
+  }
+
+  if ($("nameWrap")) {
+    $("nameWrap").classList.add("hidden");
+  }
+
+  if ($("collegeWrap")) {
+    $("collegeWrap").classList.add("hidden");
+  }
+
+  const submitButton =
+    $("authForm")?.querySelector("button");
+
+  if (submitButton) {
+    submitButton.textContent = "Log in";
+  }
+
+  if ($("authMsg")) {
+    $("authMsg").textContent = "";
+  }
+}
+
+
+function openSignup() {
+
+  closeModals();
+
+  show("auth");
+
+  if ($("authEyebrow")) {
+    $("authEyebrow").textContent =
+      "WELCOME TO MINDCAMPUS";
+  }
+
+  if ($("authTitle")) {
+    $("authTitle").textContent =
+      "Create your MindCampus account";
+  }
+
+  if ($("nameWrap")) {
+    $("nameWrap").classList.remove("hidden");
+  }
+
+  if ($("collegeWrap")) {
+    $("collegeWrap").classList.remove("hidden");
+  }
+
+  const submitButton =
+    $("authForm")?.querySelector("button");
+
+  if (submitButton) {
+    submitButton.textContent =
+      "Create account";
+  }
+
+  if ($("authMsg")) {
+    $("authMsg").textContent = "";
+  }
+}
+
+
+/* =========================
+   LOGIN / SIGNUP SWITCH
+   ========================= */
+
+let signupMode = false;
+
+function switchAuthMode() {
+
+  signupMode = !signupMode;
+
+  if (signupMode) {
+
+    if ($("authEyebrow")) {
+      $("authEyebrow").textContent =
+        "WELCOME TO MINDCAMPUS";
+    }
+
+    if ($("authTitle")) {
+      $("authTitle").textContent =
+        "Create your MindCampus account";
+    }
+
+    show("nameWrap");
+    show("collegeWrap");
+
+    const button =
+      $("authForm")?.querySelector("button");
+
+    if (button) {
+      button.textContent =
+        "Create account";
+    }
+
+    if ($("switch")) {
+      $("switch").textContent =
+        "Already have an account? Log in";
+    }
+
+  } else {
+
+    if ($("authEyebrow")) {
+      $("authEyebrow").textContent =
+        "WELCOME BACK";
+    }
+
+    if ($("authTitle")) {
+      $("authTitle").textContent =
+        "Log in to MindCampus";
+    }
+
+    hide("nameWrap");
+    hide("collegeWrap");
+
+    const button =
+      $("authForm")?.querySelector("button");
+
+    if (button) {
+      button.textContent =
+        "Log in";
+    }
+
+    if ($("switch")) {
+      $("switch").textContent =
+        "New here? Create an account";
+    }
+  }
+
+  if ($("authMsg")) {
+    $("authMsg").textContent = "";
+  }
+}
+
+
+/* =========================
+   AUTH FORM
+   ========================= */
 
 $("authForm")?.addEventListener(
   "submit",
-  async event => {
+  async (event) => {
 
     event.preventDefault();
 
+    const email =
+      $("email")?.value.trim();
 
-    if (!sb) {
+    const password =
+      $("password")?.value;
 
-      $("authMsg").textContent =
-        "Connect Supabase first.";
+    const name =
+      $("name")?.value.trim();
 
-      return;
+    const college =
+      $("college")?.value.trim();
 
+    const msg =
+      $("authMsg");
+
+    if (msg) {
+      msg.textContent =
+        signupMode
+          ? "Creating your account..."
+          : "Logging you in...";
     }
-
-
-    $("authMsg").textContent =
-      "Please wait…";
 
 
     try {
 
-      // ---------------------------------------------------
-      // SIGN UP
-      // ---------------------------------------------------
+      if (signupMode) {
 
-      if (signup) {
+        const { data, error } =
+          await supabaseClient.auth.signUp({
 
-        const name =
-          $("name").value.trim();
-
-        const college =
-          $("college").value.trim();
-
-        const email =
-          $("email").value.trim();
-
-        const password =
-          $("password").value;
-
-
-        const result =
-          await sb.auth.signUp({
-
-            email: email,
-
-            password: password,
+            email,
+            password,
 
             options: {
               data: {
@@ -267,147 +360,219 @@ $("authForm")?.addEventListener(
           });
 
 
-        if (result.error) {
-          throw result.error;
+        if (error) {
+          throw error;
         }
 
 
-        // Email confirmation required
+        /*
+           If email confirmation is enabled,
+           Supabase may not immediately create
+           an active session.
+        */
 
-        if (!result.data.session) {
+        if (!data.session) {
 
-          $("authMsg").textContent =
-            "Account created. Check your email, then log in.";
+          if (msg) {
+            msg.textContent =
+              "Account created. Please check your email to confirm your account.";
+          }
 
           return;
-
         }
 
-      }
 
+        user = data.user;
 
-      // ---------------------------------------------------
-      // LOGIN
-      // ---------------------------------------------------
+      } else {
 
-      else {
+        const { data, error } =
+          await supabaseClient.auth.signInWithPassword({
 
-        const result =
-          await sb.auth.signInWithPassword({
-
-            email:
-              $("email").value.trim(),
-
-            password:
-              $("password").value
+            email,
+            password
 
           });
 
 
-        if (result.error) {
-          throw result.error;
+        if (error) {
+          throw error;
         }
 
+        user = data.user;
       }
 
 
-      // ---------------------------------------------------
-      // GET SESSION
-      // ---------------------------------------------------
-
-      const sessionResult =
-        await sb.auth.getSession();
-
-
-      user =
-        sessionResult.data.session?.user ||
-        null;
-
+      /* =========================
+         IMPORTANT:
+         GO DIRECTLY TO FULL
+         DASHBOARD SCREEN
+         ========================= */
 
       closeModals();
 
-      await ui();
+      updateAuthUI();
+
+      showDashboardPage();
+
+      await loadDashboard();
 
 
-      // ---------------------------------------------------
-      // IMPORTANT:
-      // OPEN DASHBOARD IMMEDIATELY AFTER LOGIN
-      // ---------------------------------------------------
+    } catch (error) {
 
-      if (user) {
+      console.error(error);
 
-        await dash();
-
+      if (msg) {
+        msg.textContent =
+          error.message ||
+          "Something went wrong.";
       }
-
-
-    }
-
-    catch (error) {
-
-      $("authMsg").textContent =
-        error.message ||
-        "Something went wrong.";
-
     }
 
   }
 );
 
 
-// =========================================================
-// UI STATE
-// =========================================================
+/* =========================
+   LOGOUT
+   ========================= */
 
-async function ui() {
+async function logoutUser() {
 
+  try {
 
-  // =======================================================
-  // LOGGED OUT
-  // =======================================================
+    await supabaseClient.auth.signOut();
 
-  if (!user) {
+  } catch (error) {
 
-    show("loginBtn");
-    show("signupBtn");
-
-    show("heroSignup");
-    show("cta");
-
-    show("heroLogin");
-
-    hide("userMenu");
-
-    return;
+    console.error(
+      "Logout error:",
+      error
+    );
 
   }
 
+  user = null;
 
-  // =======================================================
-  // LOGGED IN
-  // =======================================================
+  updateAuthUI();
 
-  // Header login/signup buttons disappear
-
-  hide("loginBtn");
-  hide("signupBtn");
+  showLandingPage();
+}
 
 
-  // Main account creation buttons disappear
+/* =========================
+   AUTH STATE
+   ========================= */
 
-  hide("heroSignup");
-  hide("cta");
+supabaseClient.auth.onAuthStateChange(
+  async (event, session) => {
+
+    user =
+      session?.user ||
+      null;
+
+    updateAuthUI();
 
 
-  // Keep existing login button alternative hidden
+    if (user) {
 
-  hide("heroLogin");
+      /*
+         IMPORTANT:
+         Any valid session means
+         dashboard becomes the entire page.
+      */
+
+      showDashboardPage();
+
+      /*
+         Avoid loading dashboard during
+         SIGNED_IN callback before the
+         browser has finished updating.
+      */
+
+      setTimeout(async () => {
+        await loadDashboard();
+      }, 0);
+
+    } else {
+
+      showLandingPage();
+    }
+
+  }
+);
 
 
-  // Show account avatar
+/* =========================
+   INITIAL SESSION
+   ========================= */
 
-  show("userMenu");
+async function initializeApp() {
 
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient.auth.getSession();
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    user =
+      data.session?.user ||
+      null;
+
+
+    updateAuthUI();
+
+
+    if (user) {
+
+      /*
+         Refresh while logged in:
+         dashboard stays the main screen.
+      */
+
+      showDashboardPage();
+
+      await loadDashboard();
+
+    } else {
+
+      showLandingPage();
+
+    }
+
+  } catch (error) {
+
+    console.error(
+      "Session error:",
+      error
+    );
+
+    user = null;
+
+    updateAuthUI();
+
+    showLandingPage();
+  }
+}
+
+
+/* =========================
+   DASHBOARD
+   ========================= */
+
+async function loadDashboard() {
+
+  if (!user) {
+    return;
+  }
 
   const name =
     user.user_metadata?.full_name ||
@@ -415,158 +580,74 @@ async function ui() {
     "Student";
 
 
-  $("avatar").textContent =
-    name.charAt(0).toUpperCase();
+  if ($("welcome")) {
+
+    $("welcome").textContent =
+      `Welcome back, ${name} 👋`;
+
+  }
 
 
-  $("userLabel").textContent =
-    name;
+  if ($("dashboardAvatar")) {
+
+    $("dashboardAvatar").textContent =
+      name.charAt(0).toUpperCase();
+
+  }
+
+
+  await Promise.all([
+    loadCheckins(),
+    loadAppointments(),
+    loadSavedContacts()
+  ]);
 
 }
 
 
-// =========================================================
-// USER AVATAR
-// =========================================================
+/* =========================
+   CHECK-IN MOOD SELECTION
+   ========================= */
 
-$("avatar")?.addEventListener(
-  "click",
-  event => {
+document.querySelectorAll(
+  ".moods button"
+).forEach((button) => {
 
-    event.stopPropagation();
+  button.addEventListener(
+    "click",
+    () => {
 
-    $("drop")?.classList.toggle(
-      "hidden"
-    );
-
-  }
-);
+      selectedMood =
+        button.dataset.mood;
 
 
-// =========================================================
-// CLOSE DROPDOWN WHEN CLICKING OUTSIDE
-// =========================================================
+      document
+        .querySelectorAll(".moods button")
+        .forEach((btn) => {
 
-document.addEventListener(
-  "click",
-  event => {
+          btn.style.transform =
+            "scale(1)";
 
-    const drop = $("drop");
+          btn.style.border =
+            "";
 
-    const avatar = $("avatar");
+        });
 
 
-    if (
-      drop &&
-      avatar &&
-      !drop.contains(event.target) &&
-      !avatar.contains(event.target)
-    ) {
+      button.style.transform =
+        "scale(1.08)";
 
-      drop.classList.add(
-        "hidden"
-      );
-
+      button.style.border =
+        "2px solid var(--accent)";
     }
+  );
 
-  }
-);
-
-
-// =========================================================
-// DASHBOARD FROM PROFILE
-// Still works, but is no longer required.
-// Dashboard automatically opens after login.
-// =========================================================
-
-$("dashboardBtn")?.addEventListener(
-  "click",
-  () => {
-
-    hide("drop");
-
-    dash();
-
-  }
-);
+});
 
 
-// =========================================================
-// LOGOUT
-// =========================================================
-
-$("logoutBtn")?.addEventListener(
-  "click",
-  async () => {
-
-    if (sb) {
-
-      await sb.auth.signOut();
-
-    }
-
-
-    user = null;
-
-    mood = null;
-
-
-    closeModals();
-
-    await ui();
-
-  }
-);
-
-
-// =========================================================
-// MOOD SELECTION
-// =========================================================
-
-document
-  .querySelectorAll("[data-mood]")
-  .forEach(button => {
-
-    button.addEventListener(
-      "click",
-      () => {
-
-        document
-          .querySelectorAll("[data-mood]")
-          .forEach(item => {
-
-            item.classList.remove(
-              "selected"
-            );
-
-          });
-
-
-        button.classList.add(
-          "selected"
-        );
-
-
-        mood =
-          button.dataset.mood;
-
-
-        if ($("checkMsg")) {
-
-          $("checkMsg").textContent =
-            "Selected: " + mood;
-
-        }
-
-      }
-    );
-
-  });
-
-
-// =========================================================
-// SAVE MOOD CHECK-IN
-// =========================================================
+/* =========================
+   SAVE CHECK-IN
+   ========================= */
 
 $("checkin")?.addEventListener(
   "click",
@@ -574,351 +655,259 @@ $("checkin")?.addEventListener(
 
     if (!user) {
 
-      authMode(true);
+      openLogin();
 
       return;
-
     }
 
 
-    if (!mood) {
+    if (!selectedMood) {
 
+      if ($("checkMsg")) {
+        $("checkMsg").textContent =
+          "Please choose how you're feeling first.";
+      }
+
+      return;
+    }
+
+
+    if ($("checkMsg")) {
       $("checkMsg").textContent =
-        "Choose a mood first.";
-
-      return;
-
+        "Saving...";
     }
 
 
-    const result =
-      await sb
-        .from("mood_checkins")
-        .insert({
+    try {
 
-          user_id:
-            user.id,
+      const { error } =
+        await supabaseClient
+          .from("mood_checkins")
+          .insert({
 
-          mood:
-            mood
+            user_id: user.id,
+            mood: selectedMood
+
+          });
+
+
+      if (error) {
+        throw error;
+      }
+
+
+      if ($("checkMsg")) {
+        $("checkMsg").textContent =
+          "Check-in saved ✓";
+      }
+
+
+      selectedMood = null;
+
+
+      document
+        .querySelectorAll(".moods button")
+        .forEach((btn) => {
+
+          btn.style.transform =
+            "scale(1)";
+
+          btn.style.border =
+            "";
 
         });
 
 
-    if (result.error) {
+      await loadCheckins();
 
-      $("checkMsg").textContent =
-        result.error.message;
 
-      return;
+    } catch (error) {
+
+      console.error(error);
+
+      if ($("checkMsg")) {
+        $("checkMsg").textContent =
+          error.message ||
+          "Could not save check-in.";
+      }
 
     }
-
-
-    $("checkMsg").textContent =
-      "Saved privately to your account ✓";
-
-
-    await loadDash();
 
   }
 );
 
 
-// =========================================================
-// DASHBOARD
-// =========================================================
+/* =========================
+   LOAD CHECK-INS
+   ========================= */
 
-async function dash() {
+async function loadCheckins() {
 
   if (!user) {
-
-    authMode(false);
-
-    return;
-
-  }
-
-
-  show("dash");
-
-  await loadDash();
-
-}
-
-
-// =========================================================
-// REFRESH DASHBOARD
-// =========================================================
-
-$("refresh")?.addEventListener(
-  "click",
-  async () => {
-
-    await loadDash();
-
-  }
-);
-
-
-// =========================================================
-// LOAD DASHBOARD
-// =========================================================
-
-async function loadDash() {
-
-  if (!sb || !user) {
     return;
   }
 
 
-  const name =
-    user.user_metadata?.full_name ||
-    user.email?.split("@")[0] ||
-    "Student";
+  try {
 
-
-  // -------------------------------------------------------
-  // WELCOME
-  // -------------------------------------------------------
-
-  if ($("welcome")) {
-
-    $("welcome").textContent =
-      "Welcome back, " +
-      name.split(" ")[0] +
-      " 👋";
-
-  }
-
-
-  // -------------------------------------------------------
-  // MOODS
-  // -------------------------------------------------------
-
-  const moodResult =
-    await sb
-      .from("mood_checkins")
-      .select("*")
-      .eq("user_id", user.id)
-      .order(
-        "created_at",
-        {
+    const { data, error } =
+      await supabaseClient
+        .from("mood_checkins")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", {
           ascending: false
-        }
-      )
-      .limit(8);
+        });
 
 
-  // -------------------------------------------------------
-  // APPOINTMENTS
-  // -------------------------------------------------------
-
-  const appointmentResult =
-    await sb
-      .from("appointments")
-      .select("*")
-      .eq("user_id", user.id)
-      .order(
-        "appointment_date",
-        {
-          ascending: true
-        }
-      );
+    if (error) {
+      throw error;
+    }
 
 
-  const moods =
-    moodResult.data || [];
+    const checkins =
+      data || [];
 
 
-  const appointments =
-    appointmentResult.data || [];
+    /* Latest */
+
+    if (checkins.length > 0) {
+
+      const latest =
+        checkins[0];
 
 
-  // -------------------------------------------------------
-  // LATEST CHECK-IN
-  // -------------------------------------------------------
-
-  if ($("latest")) {
-
-    $("latest").textContent =
-      moods[0]?.mood || "—";
-
-  }
+      if ($("latest")) {
+        $("latest").textContent =
+          latest.mood;
+      }
 
 
-  if ($("latestDate")) {
+      if ($("latestDate")) {
 
-    $("latestDate").textContent =
-      moods[0]
-        ? new Date(
-            moods[0].created_at
-          ).toLocaleString()
-        : "No check-ins yet";
-
-  }
-
-
-  // -------------------------------------------------------
-  // NEXT APPOINTMENT
-  // -------------------------------------------------------
-
-  const now =
-    new Date();
-
-
-  const nextAppointment =
-    appointments.find(
-      appointment => {
-
-        const appointmentDate =
-          new Date(
-            appointment.appointment_date +
-            "T" +
-            appointment.appointment_time
-          );
-
-
-        return appointmentDate >= now;
+        $("latestDate").textContent =
+          formatDate(latest.created_at);
 
       }
+
+    } else {
+
+      if ($("latest")) {
+        $("latest").textContent =
+          "—";
+      }
+
+      if ($("latestDate")) {
+        $("latestDate").textContent =
+          "No check-ins yet";
+      }
+
+    }
+
+
+    /* History */
+
+    const history =
+      $("history");
+
+
+    if (!history) {
+      return;
+    }
+
+
+    if (!checkins.length) {
+
+      history.innerHTML =
+        `<p class="hint">No check-ins yet.</p>`;
+
+      return;
+    }
+
+
+    history.innerHTML =
+      checkins
+        .slice(0, 10)
+        .map((item) => {
+
+          return `
+            <div class="contact-card">
+              <div>
+                <strong>
+                  ${escapeHtml(item.mood)}
+                </strong>
+
+                <span>
+                  ${escapeHtml(
+                    formatDate(item.created_at)
+                  )}
+                </span>
+              </div>
+
+              <div>
+                <small>✓ Saved</small>
+              </div>
+            </div>
+          `;
+
+        })
+        .join("");
+
+
+  } catch (error) {
+
+    console.error(
+      "Check-in loading error:",
+      error
     );
 
-
-  if ($("next")) {
-
-    $("next").textContent =
-      nextAppointment?.support_type ||
-      "—";
-
   }
-
-
-  if ($("nextDate")) {
-
-    $("nextDate").textContent =
-      nextAppointment
-
-        ? nextAppointment.appointment_date +
-          " · " +
-          nextAppointment.appointment_time
-
-        : "No appointment booked";
-
-  }
-
-
-  // -------------------------------------------------------
-  // HISTORY
-  // -------------------------------------------------------
-
-  if ($("history")) {
-
-    if (moods.length) {
-
-      $("history").innerHTML =
-        moods
-          .map(item => {
-
-            return `
-              <p>
-                ${escapeHtml(item.mood)}
-
-                <span style="float:right">
-                  ${new Date(
-                    item.created_at
-                  ).toLocaleDateString()}
-                </span>
-
-              </p>
-            `;
-
-          })
-          .join("");
-
-    }
-
-    else {
-
-      $("history").innerHTML =
-        "<p>No check-ins yet.</p>";
-
-    }
-
-  }
-
-
-  // -------------------------------------------------------
-  // SAVED CONTACTS
-  // -------------------------------------------------------
-
-  await loadSavedContacts();
 
 }
 
 
-// =========================================================
-// BOOKING
-// =========================================================
-
-function openBooking() {
-
-  closeModals();
-
-  show("booking");
-
-}
-
-
-// Dashboard booking button
+/* =========================
+   APPOINTMENT
+   ========================= */
 
 $("bookBtn")?.addEventListener(
   "click",
-  event => {
-
-    event.preventDefault();
-
-    event.stopPropagation();
-
+  () => {
 
     if (!user) {
-
-      authMode(true);
-
+      openLogin();
       return;
-
     }
 
+    closeModals();
 
-    openBooking();
+    show("booking");
 
   }
 );
 
 
-// Support booking buttons
+/* Landing page booking buttons */
 
 document
   .querySelectorAll(".book")
-  .forEach(button => {
+  .forEach((button) => {
 
     button.addEventListener(
       "click",
-      event => {
-
-        event.preventDefault();
-
+      () => {
 
         if (!user) {
 
-          authMode(true);
+          openLogin();
 
-          return;
+        } else {
+
+          closeModals();
+
+          show("booking");
 
         }
-
-
-        openBooking();
 
       }
     );
@@ -926,99 +915,699 @@ document
   });
 
 
-// =========================================================
-// BOOKING FORM
-// =========================================================
+/* =========================
+   SAVE APPOINTMENT
+   ========================= */
 
 $("bookingForm")?.addEventListener(
   "submit",
-  async event => {
+  async (event) => {
 
     event.preventDefault();
 
 
     if (!user) {
 
-      authMode(false);
+      openLogin();
 
       return;
-
     }
 
 
-    if (!sb) {
+    const type =
+      $("type")?.value;
 
+    const date =
+      $("date")?.value;
+
+    const time =
+      $("time")?.value;
+
+
+    if ($("bookMsg")) {
       $("bookMsg").textContent =
-        "Supabase is not connected.";
-
-      return;
-
+        "Saving appointment...";
     }
 
 
-    $("bookMsg").textContent =
-      "Saving appointment...";
+    try {
+
+      const { error } =
+        await supabaseClient
+          .from("appointments")
+          .insert({
+
+            user_id: user.id,
+            type: type,
+            date: date,
+            time: time
+
+          });
 
 
-    const result =
-      await sb
-        .from("appointments")
-        .insert({
-
-          user_id:
-            user.id,
-
-          support_type:
-            $("type").value,
-
-          appointment_date:
-            $("date").value,
-
-          appointment_time:
-            $("time").value,
-
-          status:
-            "requested"
-
-        });
+      if (error) {
+        throw error;
+      }
 
 
-    if (result.error) {
-
-      $("bookMsg").textContent =
-        result.error.message;
-
-      return;
-
-    }
+      if ($("bookMsg")) {
+        $("bookMsg").textContent =
+          "Appointment saved ✓";
+      }
 
 
-    $("bookMsg").textContent =
-      "Appointment saved ✓";
+      await loadAppointments();
 
 
-    setTimeout(
-      async () => {
+      setTimeout(() => {
 
         closeModals();
 
-        await dash();
+      }, 700);
 
-      },
-      700
-    );
+
+    } catch (error) {
+
+      console.error(error);
+
+      if ($("bookMsg")) {
+        $("bookMsg").textContent =
+          error.message ||
+          "Could not save appointment.";
+      }
+
+    }
 
   }
 );
 
 
-// =========================================================
-// INSTITUTION DEMO
-// =========================================================
+/* =========================
+   LOAD APPOINTMENTS
+   ========================= */
+
+async function loadAppointments() {
+
+  if (!user) {
+    return;
+  }
+
+
+  try {
+
+    const { data, error } =
+      await supabaseClient
+        .from("appointments")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("date", {
+          ascending: true
+        });
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    const appointments =
+      data || [];
+
+
+    if (!appointments.length) {
+
+      if ($("next")) {
+        $("next").textContent =
+          "—";
+      }
+
+      if ($("nextDate")) {
+        $("nextDate").textContent =
+          "No appointment booked";
+      }
+
+      return;
+    }
+
+
+    const upcoming =
+      appointments[0];
+
+
+    if ($("next")) {
+      $("next").textContent =
+        upcoming.type ||
+        "Support session";
+    }
+
+
+    if ($("nextDate")) {
+
+      $("nextDate").textContent =
+        `${upcoming.date || ""} · ${upcoming.time || ""}`;
+
+    }
+
+
+  } catch (error) {
+
+    console.error(
+      "Appointment loading error:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =========================
+   SAVED CONTACTS
+   ========================= */
+
+$("contactForm")?.addEventListener(
+  "submit",
+  async (event) => {
+
+    event.preventDefault();
+
+
+    if (!user) {
+
+      openLogin();
+
+      return;
+    }
+
+
+    const name =
+      $("contactName")?.value.trim();
+
+    const relationship =
+      $("contactRelation")?.value.trim();
+
+    const phone =
+      $("contactPhone")?.value.trim();
+
+
+    if (!name || !relationship || !phone) {
+
+      if ($("contactMsg")) {
+        $("contactMsg").textContent =
+          "Please fill in all contact details.";
+      }
+
+      return;
+    }
+
+
+    if ($("contactMsg")) {
+      $("contactMsg").textContent =
+        "Saving contact...";
+    }
+
+
+    try {
+
+      const { error } =
+        await supabaseClient
+          .from("saved_contacts")
+          .insert({
+
+            user_id: user.id,
+            name: name,
+            relationship: relationship,
+            phone: phone
+
+          });
+
+
+      if (error) {
+        throw error;
+      }
+
+
+      $("contactForm").reset();
+
+
+      if ($("contactMsg")) {
+        $("contactMsg").textContent =
+          "Contact saved ✓";
+      }
+
+
+      await loadSavedContacts();
+
+
+    } catch (error) {
+
+      console.error(
+        "Contact saving error:",
+        error
+      );
+
+
+      if ($("contactMsg")) {
+        $("contactMsg").textContent =
+          error.message ||
+          "Could not save contact.";
+      }
+
+    }
+
+  }
+);
+
+
+/* =========================
+   LOAD SAVED CONTACTS
+   ========================= */
+
+async function loadSavedContacts() {
+
+  if (!user) {
+    return;
+  }
+
+
+  const container =
+    $("savedContacts");
+
+
+  if (!container) {
+    return;
+  }
+
+
+  try {
+
+    const { data, error } =
+      await supabaseClient
+        .from("saved_contacts")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", {
+          ascending: false
+        });
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    const contacts =
+      data || [];
+
+
+    if (!contacts.length) {
+
+      container.innerHTML =
+        `<p class="hint">No saved contacts yet.</p>`;
+
+      return;
+    }
+
+
+    container.innerHTML =
+      contacts
+        .map((contact) => {
+
+          return `
+            <div class="contact-card">
+
+              <div>
+
+                <strong>
+                  ${escapeHtml(contact.name)}
+                </strong>
+
+                <span>
+                  ${escapeHtml(
+                    contact.relationship
+                  )}
+                  ·
+                  ${escapeHtml(
+                    contact.phone
+                  )}
+                </span>
+
+              </div>
+
+
+              <div>
+
+                <small>
+                  ✓ Saved
+                </small>
+
+                <button
+                  class="btn soft remove-contact"
+                  data-id="${escapeHtml(contact.id)}"
+                >
+                  Remove
+                </button>
+
+              </div>
+
+            </div>
+          `;
+
+        })
+        .join("");
+
+
+    /* Remove buttons */
+
+    container
+      .querySelectorAll(
+        ".remove-contact"
+      )
+      .forEach((button) => {
+
+        button.addEventListener(
+          "click",
+          async () => {
+
+            await removeContact(
+              button.dataset.id
+            );
+
+          }
+        );
+
+      });
+
+
+  } catch (error) {
+
+    console.error(
+      "Saved contacts loading error:",
+      error
+    );
+
+
+    container.innerHTML =
+      `<p class="hint">
+        Could not load saved contacts.
+      </p>`;
+
+  }
+
+}
+
+
+/* =========================
+   REMOVE CONTACT
+   ========================= */
+
+async function removeContact(id) {
+
+  if (!user || !id) {
+    return;
+  }
+
+
+  try {
+
+    const { error } =
+      await supabaseClient
+        .from("saved_contacts")
+        .delete()
+        .eq("id", id)
+        .eq("user_id", user.id);
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    await loadSavedContacts();
+
+
+  } catch (error) {
+
+    console.error(
+      "Contact removal error:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =========================
+   REFRESH DASHBOARD
+   ========================= */
+
+$("refresh")?.addEventListener(
+  "click",
+  async () => {
+
+    if (!user) {
+      return;
+    }
+
+
+    const button =
+      $("refresh");
+
+
+    if (button) {
+      button.textContent =
+        "Refreshing...";
+      button.disabled = true;
+    }
+
+
+    await loadDashboard();
+
+
+    if (button) {
+
+      button.textContent =
+        "Refresh";
+
+      button.disabled =
+        false;
+
+    }
+
+  }
+);
+
+
+/* =========================
+   OLD PROFILE MENU
+   ========================= */
+
+$("avatar")?.addEventListener(
+  "click",
+  () => {
+
+    if ($("drop")) {
+      $("drop").classList.toggle(
+        "hidden"
+      );
+    }
+
+  }
+);
+
+
+$("dashboardBtn")?.addEventListener(
+  "click",
+  () => {
+
+    if (!user) {
+      openLogin();
+      return;
+    }
+
+    showDashboardPage();
+
+    loadDashboard();
+
+  }
+);
+
+
+/* =========================
+   NEW DASHBOARD LOGOUT
+   ========================= */
+
+$("dashboardLogout")?.addEventListener(
+  "click",
+  async () => {
+
+    await logoutUser();
+
+  }
+);
+
+
+/* =========================
+   DASHBOARD BRAND
+   ========================= */
+
+$("dashboardBrand")?.addEventListener(
+  "click",
+  (event) => {
+
+    event.preventDefault();
+
+    if (user) {
+
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+
+    }
+
+  }
+);
+
+
+/* =========================
+   LANDING LOGIN BUTTONS
+   ========================= */
+
+$("loginBtn")?.addEventListener(
+  "click",
+  () => {
+
+    signupMode = false;
+
+    openLogin();
+
+  }
+);
+
+
+$("heroLogin")?.addEventListener(
+  "click",
+  () => {
+
+    signupMode = false;
+
+    openLogin();
+
+  }
+);
+
+
+/* =========================
+   LANDING SIGNUP BUTTONS
+   ========================= */
+
+$("signupBtn")?.addEventListener(
+  "click",
+  () => {
+
+    signupMode = true;
+
+    openSignup();
+
+  }
+);
+
+
+$("heroSignup")?.addEventListener(
+  "click",
+  () => {
+
+    signupMode = true;
+
+    openSignup();
+
+  }
+);
+
+
+$("cta")?.addEventListener(
+  "click",
+  () => {
+
+    signupMode = true;
+
+    openSignup();
+
+  }
+);
+
+
+/* =========================
+   AUTH SWITCH BUTTON
+   ========================= */
+
+$("switch")?.addEventListener(
+  "click",
+  () => {
+
+    switchAuthMode();
+
+  }
+);
+
+
+/* =========================
+   CLOSE BUTTONS
+   ========================= */
+
+document
+  .querySelectorAll("[data-close]")
+  .forEach((button) => {
+
+    button.addEventListener(
+      "click",
+      () => {
+
+        closeModals();
+
+      }
+    );
+
+  });
+
+
+/* =========================
+   CLICK OUTSIDE MODAL
+   ========================= */
+
+document
+  .querySelectorAll(".modal")
+  .forEach((modal) => {
+
+    modal.addEventListener(
+      "click",
+      (event) => {
+
+        if (
+          event.target === modal
+        ) {
+
+          closeModals();
+
+        }
+
+      }
+    );
+
+  });
+
+
+/* =========================
+   INSTITUTION DEMO
+   ========================= */
 
 $("demo")?.addEventListener(
   "click",
   () => {
+
+    closeModals();
 
     show("demoModal");
 
@@ -1028,406 +1617,61 @@ $("demo")?.addEventListener(
 
 $("demoForm")?.addEventListener(
   "submit",
-  event => {
+  (event) => {
 
     event.preventDefault();
 
 
-    $("demoMsg").textContent =
-      "Demo request captured ✓";
+    if ($("demoMsg")) {
 
+      $("demoMsg").textContent =
+        "Thanks! We'll get in touch with your institution.";
 
-    event.target.reset();
+    }
 
   }
 );
 
 
-// =========================================================
-// SAVED CONTACTS
-// =========================================================
+/* =========================
+   DATE FORMATTER
+   ========================= */
 
-async function loadSavedContacts() {
+function formatDate(dateValue) {
 
-  if (!sb || !user) {
-    return;
+  if (!dateValue) {
+    return "Unknown date";
   }
 
 
-  const box =
-    $("savedContacts");
-
-
-  if (!box) {
-    return;
-  }
-
-
-  const result =
-    await sb
-      .from("saved_contacts")
-      .select("*")
-      .eq(
-        "user_id",
-        user.id
-      )
-      .order(
-        "created_at",
-        {
-          ascending: false
-        }
-      );
-
-
-  if (result.error) {
-
-    box.innerHTML =
-      "<p>Unable to load saved contacts.</p>";
-
-    return;
-
-  }
-
-
-  const contacts =
-    result.data || [];
-
-
-  // -------------------------------------------------------
-  // NO CONTACTS
-  // -------------------------------------------------------
-
-  if (!contacts.length) {
-
-    box.innerHTML =
-      "<p>No saved contacts yet.</p>";
-
-    return;
-
-  }
-
-
-  // -------------------------------------------------------
-  // DISPLAY CONTACTS
-  // No calling feature.
-  // -------------------------------------------------------
-
-  box.innerHTML =
-    contacts
-      .map(contact => {
-
-        return `
-          <div class="contact-card">
-
-            <div>
-
-              <strong>
-                ${escapeHtml(
-                  contact.name
-                )}
-              </strong>
-
-              <span>
-                ${escapeHtml(
-                  contact.relationship ||
-                  "Contact"
-                )}
-                ·
-                ${escapeHtml(
-                  contact.phone
-                )}
-              </span>
-
-              <small>
-                ✓ Saved
-              </small>
-
-            </div>
-
-
-            <div>
-
-              <button
-                class="btn ghost delete-contact"
-                data-id="${contact.id}"
-              >
-                Remove
-              </button>
-
-            </div>
-
-          </div>
-        `;
-
-      })
-      .join("");
-
-
-  // -------------------------------------------------------
-  // REMOVE CONTACT
-  // -------------------------------------------------------
-
-  document
-    .querySelectorAll(".delete-contact")
-    .forEach(button => {
-
-      button.addEventListener(
-        "click",
-        async () => {
-
-          const id =
-            button.dataset.id;
-
-
-          const result =
-            await sb
-              .from("saved_contacts")
-              .delete()
-              .eq(
-                "id",
-                id
-              )
-              .eq(
-                "user_id",
-                user.id
-              );
-
-
-          if (result.error) {
-
-            if ($("contactMsg")) {
-
-              $("contactMsg").textContent =
-                result.error.message;
-
-            }
-
-            return;
-
-          }
-
-
-          if ($("contactMsg")) {
-
-            $("contactMsg").textContent =
-              "Contact removed.";
-
-          }
-
-
-          await loadSavedContacts();
-
-        }
-      );
-
-    });
-
-}
-
-
-// =========================================================
-// ADD PEER CONTACT
-// =========================================================
-
-$("contactForm")?.addEventListener(
-  "submit",
-  async event => {
-
-    event.preventDefault();
-
-
-    if (!user) {
-
-      authMode(true);
-
-      return;
-
-    }
-
-
-    if (!sb) {
-
-      $("contactMsg").textContent =
-        "Supabase is not connected.";
-
-      return;
-
-    }
-
-
-    const name =
-      $("contactName")
-        .value
-        .trim();
-
-
-    const relationship =
-      $("contactRelation")
-        .value;
-
-
-    const phone =
-      $("contactPhone")
-        .value
-        .trim();
-
-
-    if (!name || !phone) {
-
-      $("contactMsg").textContent =
-        "Please enter a name and phone number.";
-
-      return;
-
-    }
-
-
-    $("contactMsg").textContent =
-      "Saving contact...";
-
-
-    const result =
-      await sb
-        .from("saved_contacts")
-        .insert({
-
-          user_id:
-            user.id,
-
-          name:
-            name,
-
-          relationship:
-            relationship,
-
-          phone:
-            phone
-
-        });
-
-
-    if (result.error) {
-
-      $("contactMsg").textContent =
-        result.error.message;
-
-      return;
-
-    }
-
-
-    $("contactMsg").textContent =
-      "Contact saved ✓";
-
-
-    $("contactForm").reset();
-
-
-    await loadSavedContacts();
-
-  }
-);
-
-
-// =========================================================
-// ESCAPE HTML
-// =========================================================
-
-function escapeHtml(value) {
-
-  return String(value)
-
-    .replaceAll(
-      "&",
-      "&amp;"
-    )
-
-    .replaceAll(
-      "<",
-      "&lt;"
-    )
-
-    .replaceAll(
-      ">",
-      "&gt;"
-    )
-
-    .replaceAll(
-      '"',
-      "&quot;"
-    )
-
-    .replaceAll(
-      "'",
-      "&#039;"
-    );
-
-}
-
-
-// =========================================================
-// INITIALIZE
-// =========================================================
-
-(async function initialize() {
-
-  if (sb) {
-
-    const sessionResult =
-      await sb.auth.getSession();
-
-
-    user =
-      sessionResult
-        .data
-        .session?.user ||
-      null;
-
-
-    // -----------------------------------------------------
-    // AUTH STATE CHANGES
-    // -----------------------------------------------------
-
-    sb.auth.onAuthStateChange(
-      async (_event, session) => {
-
-        user =
-          session?.user ||
-          null;
-
-
-        await ui();
-
-
-        // If a user logs in, open dashboard immediately
-
-        if (
-          user &&
-          _event === "SIGNED_IN"
-        ) {
-
-          await dash();
-
-        }
-
+  try {
+
+    const date =
+      new Date(dateValue);
+
+
+    return date.toLocaleString(
+      "en-IN",
+      {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
       }
     );
 
-  }
+  } catch {
 
-
-  await ui();
-
-
-  // -------------------------------------------------------
-  // IF USER IS ALREADY LOGGED IN AFTER REFRESH
-  // OPEN DASHBOARD AUTOMATICALLY
-  // -------------------------------------------------------
-
-  if (user) {
-
-    await dash();
+    return String(dateValue);
 
   }
 
-})();
+}
+
+
+/* =========================
+   START APP
+   ========================= */
+
+initializeApp();
