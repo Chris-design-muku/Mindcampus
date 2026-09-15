@@ -1,85 +1,11 @@
-const $ = (s, root=document) => root.querySelector(s);
-const $$ = (s, root=document) => [...root.querySelectorAll(s)];
-
-const toast = (msg) => {
-  const el = $('#toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  clearTimeout(window.__toast);
-  window.__toast = setTimeout(() => el.classList.remove('show'), 2600);
-};
-
-function openModal(id){
-  const modal = document.getElementById(id);
-  if(!modal) return;
-  modal.classList.add('open');
-  modal.setAttribute('aria-hidden','false');
-  document.body.style.overflow='hidden';
-}
-function closeModal(modal){
-  modal.classList.remove('open');
-  modal.setAttribute('aria-hidden','true');
-  document.body.style.overflow='';
-}
-$$('[data-modal]').forEach(btn => btn.addEventListener('click', () => openModal(btn.dataset.modal)));
-$$('.modal .close').forEach(btn => btn.addEventListener('click', () => closeModal(btn.closest('.modal'))));
-$$('.modal-backdrop').forEach(bg => bg.addEventListener('click', () => closeModal(bg.closest('.modal'))));
-document.addEventListener('keydown', e => { if(e.key === 'Escape') $$('.modal.open').forEach(closeModal); });
-
-$('#menuToggle')?.addEventListener('click', () => $('#mainNav').classList.toggle('open'));
-$$('#mainNav a').forEach(a => a.addEventListener('click', () => $('#mainNav').classList.remove('open')));
-
-$$('.moods button').forEach(btn => btn.addEventListener('click', () => {
-  $$('.moods button').forEach(b => b.style.transform='');
-  btn.style.transform='translateY(-5px)';
-  const mood = btn.dataset.mood;
-  $('.card-progress span').style.width = mood === 'Great' ? '92%' : mood === 'Okay' ? '70%' : mood === 'Low' ? '48%' : '30%';
-  toast(`Check-in saved: feeling ${mood}.`);
-}));
-
-const serviceText = {
-  therapy: 'You can connect with professional support privately, including when campus life gets overwhelming.',
-  psychologist: 'During exams and placement periods, visiting psychologists can provide an in-person option.',
-  peer: 'Trained student ambassadors can help with early support, connection and directing students to the right pathway.',
-  resources: 'Practical resources can help with stress, sleep, focus, routines and everyday resilience.'
-};
-$$('.service').forEach(btn => btn.addEventListener('click', () => {
-  $$('.service').forEach(x => x.classList.remove('active'));
-  btn.classList.add('active');
-  toast(serviceText[btn.dataset.service]);
-}));
-
-$$('.modal-options button').forEach(btn => btn.addEventListener('click', () => {
-  const action = btn.dataset.action;
-  const message = $('#supportMessage');
-  const messages = {
-    book: 'Prototype action: counselling booking would open here. In a production app, this would connect to the booking system.',
-    anonymous: 'Prototype action: anonymous support pathway selected. No personal information is collected in this demo.',
-    resources: 'Prototype action: the wellness resource library would open here.'
-  };
-  message.textContent = messages[action];
-  message.classList.add('show');
-}));
-
-$('#collegeForm')?.addEventListener('submit', e => {
-  e.preventDefault();
-  const data = new FormData(e.target);
-  $('#collegeMessage').textContent = `Thanks, ${data.get('name')}. Your partnership enquiry has been captured in this prototype.`;
-  $('#collegeMessage').classList.add('show');
-  e.target.reset();
-});
-
-const observer = new IntersectionObserver(entries => {
-  entries.forEach(entry => {
-    if(entry.isIntersecting) entry.target.classList.add('visible');
-  });
-},{threshold:.12});
-$$('.problem-card,.step,.service,.dashboard,.support-visual').forEach(el => {
-  el.style.transition = 'opacity .7s ease, transform .7s ease';
-  el.style.opacity = '0';
-  el.style.transform = 'translateY(16px)';
-  observer.observe(el);
-});
-document.addEventListener('scroll', () => {
-  $$('.visible').forEach(el => { el.style.opacity='1'; el.style.transform='translateY(0)'; });
-},{passive:true});
+const SUPABASE_URL="YOUR_SUPABASE_URL";const SUPABASE_ANON_KEY="YOUR_SUPABASE_ANON_KEY";const ready=!SUPABASE_URL.startsWith("YOUR_")&&!SUPABASE_ANON_KEY.startsWith("YOUR_");const sb=ready?supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;let user=null,signup=false,mood=null;
+const $=id=>document.getElementById(id),show=id=>$(id).classList.remove("hidden"),hide=id=>$(id).classList.add("hidden"),close=()=>document.querySelectorAll(".modal").forEach(x=>x.classList.add("hidden"));function authMode(s){signup=s;$("authEyebrow").textContent=s?"START YOUR PRIVATE SPACE":"WELCOME BACK";$("authTitle").textContent=s?"Create your MindCampus account":"Log in to MindCampus";document.querySelectorAll("#nameWrap,#collegeWrap").forEach(x=>x.classList.toggle("hidden",!s));$("authForm").querySelector("button").textContent=s?"Create account":"Log in";$("switch").textContent=s?"Already have an account? Log in":"New here? Create an account";$("authMsg").textContent="";show("auth")}
+$("loginBtn").onclick=()=>authMode(false);$("signupBtn").onclick=()=>authMode(true);$("heroSignup").onclick=()=>authMode(true);$("heroLogin").onclick=()=>authMode(false);$("cta").onclick=()=>authMode(true);$("switch").onclick=()=>authMode(!signup);document.querySelectorAll("[data-close]").forEach(x=>x.onclick=close);document.querySelectorAll(".modal").forEach(x=>x.onclick=e=>{if(e.target===x)close()});
+$("authForm").onsubmit=async e=>{e.preventDefault();if(!sb){$("authMsg").textContent="Connect Supabase first — see SETUP.md.";return}$("authMsg").textContent="Please wait…";try{if(signup){const n=$("name").value.trim(),c=$("college").value.trim();const r=await sb.auth.signUp({email:$("email").value.trim(),password:$("password").value,options:{data:{full_name:n,college:c}}});if(r.error)throw r.error;if(!r.data.session){$("authMsg").textContent="Account created. Check your email, then log in.";return}}else{const r=await sb.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});if(r.error)throw r.error}close();const s=await sb.auth.getSession();user=s.data.session?.user||null;ui();dash()}catch(x){$("authMsg").textContent=x.message||"Something went wrong."}};
+async function ui(){if(!user){hide("userMenu");show("loginBtn");show("signupBtn");return}hide("loginBtn");hide("signupBtn");show("userMenu");const n=user.user_metadata?.full_name||user.email.split("@")[0];$("avatar").textContent=n[0].toUpperCase();$("userLabel").textContent=n}
+$("avatar").onclick=()=>$("drop").classList.toggle("hidden");$("logoutBtn").onclick=async()=>{await sb.auth.signOut();user=null;ui();close()};$("dashboardBtn").onclick=()=>{hide("drop");dash()};
+document.querySelectorAll("[data-mood]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-mood]").forEach(x=>x.classList.remove("selected"));b.classList.add("selected");mood=b.dataset.mood;$("checkMsg").textContent="Selected: "+mood});
+$("checkin").onclick=async()=>{if(!user)return authMode(true);if(!mood)return $("checkMsg").textContent="Choose a mood first.";const r=await sb.from("mood_checkins").insert({user_id:user.id,mood});$("checkMsg").textContent=r.error?r.error.message:"Saved privately to your account ✓";if(!r.error)loadDash()};
+async function dash(){if(!user)return authMode(false);show("dash");await loadDash()}$("refresh").onclick=loadDash;async function loadDash(){if(!sb||!user)return;const n=user.user_metadata?.full_name||user.email.split("@")[0];$("welcome").textContent="Welcome back, "+n.split(" ")[0]+" 👋";const m=await sb.from("mood_checkins").select("*").eq("user_id",user.id).order("created_at",{ascending:false}).limit(8);const a=await sb.from("appointments").select("*").eq("user_id",user.id).order("appointment_date",{ascending:true});const ms=m.data||[],as=a.data||[];$("latest").textContent=ms[0]?.mood||"—";$("latestDate").textContent=ms[0]?new Date(ms[0].created_at).toLocaleString():"No check-ins yet";const nx=as.find(x=>new Date(x.appointment_date+"T"+x.appointment_time)>=new Date());$("next").textContent=nx?.support_type||"—";$("nextDate").textContent=nx?nx.appointment_date+" · "+nx.appointment_time:"No appointment booked";$("history").innerHTML=ms.length?ms.map(x=>`<p>${x.mood} <span style="float:right">${new Date(x.created_at).toLocaleDateString()}</span></p>`).join(""):"<p>No check-ins yet.</p>"}
+$("bookBtn").onclick=()=>{close();show("booking")};document.querySelectorAll(".book").forEach(x=>x.onclick=()=>user?show("booking"):authMode(true));$("bookingForm").onsubmit=async e=>{e.preventDefault();const r=await sb.from("appointments").insert({user_id:user.id,support_type:$("type").value,appointment_date:$("date").value,appointment_time:$("time").value,status:"requested"});$("bookMsg").textContent=r.error?r.error.message:"Appointment saved ✓";if(!r.error)setTimeout(()=>{close();dash()},700)};$("demo").onclick=()=>show("demoModal");$("demoForm").onsubmit=e=>{e.preventDefault();$("demoMsg").textContent="Demo request captured ✓";e.target.reset()};
+(async()=>{if(sb){const s=await sb.auth.getSession();user=s.data.session?.user||null;sb.auth.onAuthStateChange((_e,s)=>{user=s?.user||null;ui()})}ui()})();
