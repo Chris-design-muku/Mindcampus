@@ -1,5 +1,11 @@
 /* =========================================================
-   MINDCAMPUS — SCRIPT.JS
+   MINDCAMPUS - COMPLETE JAVASCRIPT
+   Compatible with current MindCampus HTML
+   ========================================================= */
+
+
+/* =========================================================
+   SUPABASE
    ========================================================= */
 
 const SUPABASE_URL =
@@ -15,35 +21,48 @@ const sb = window.supabase.createClient(
 
 
 /* =========================================================
-   BASIC HELPERS
+   HELPERS
    ========================================================= */
 
-const $ = id => document.getElementById(id);
+function $(id) {
+  return document.getElementById(id);
+}
 
-const show = id => {
+function show(id) {
   const el = $(id);
-  if (el) el.classList.remove("hidden");
-};
+  if (el) {
+    el.classList.remove("hidden");
+  }
+}
 
-const hide = id => {
+function hide(id) {
   const el = $(id);
-  if (el) el.classList.add("hidden");
-};
+  if (el) {
+    el.classList.add("hidden");
+  }
+}
 
-const close = () => {
+function setText(id, text) {
+  const el = $(id);
+  if (el) {
+    el.textContent = text;
+  }
+}
+
+function closeModals() {
   document.querySelectorAll(".modal").forEach(modal => {
     modal.classList.add("hidden");
   });
-};
+}
 
 
 /* =========================================================
-   GLOBAL VARIABLES
+   VARIABLES
    ========================================================= */
 
 let user = null;
 let signup = false;
-let mood = null;
+let selectedMood = null;
 
 
 /* =========================================================
@@ -54,235 +73,309 @@ function authMode(isSignup) {
 
   signup = isSignup;
 
-  $("authEyebrow").textContent =
+  setText(
+    "authEyebrow",
     signup
       ? "START YOUR PRIVATE SPACE"
-      : "WELCOME BACK";
+      : "WELCOME BACK"
+  );
 
-  $("authTitle").textContent =
+  setText(
+    "authTitle",
     signup
       ? "Create your MindCampus account"
-      : "Log in to MindCampus";
+      : "Log in to MindCampus"
+  );
+
 
   document
     .querySelectorAll("#nameWrap,#collegeWrap")
-    .forEach(element => {
-      element.classList.toggle("hidden", !signup);
+    .forEach(el => {
+      el.classList.toggle("hidden", !signup);
     });
 
-  $("authForm").querySelector("button").textContent =
-    signup
-      ? "Create account"
-      : "Log in";
 
-  $("switch").textContent =
+  const form = $("authForm");
+
+  if (form) {
+
+    const button =
+      form.querySelector("button[type='submit']") ||
+      form.querySelector("button");
+
+    if (button) {
+
+      button.textContent =
+        signup
+          ? "Create account"
+          : "Log in";
+
+    }
+  }
+
+
+  setText(
+    "switch",
     signup
       ? "Already have an account? Log in"
-      : "New here? Create an account";
+      : "New here? Create an account"
+  );
 
-  $("authMsg").textContent = "";
+
+  setText("authMsg", "");
 
   show("auth");
 }
 
 
 /* =========================================================
-   AUTH BUTTONS
+   LOGIN / SIGNUP BUTTONS
    ========================================================= */
 
-$("loginBtn").onclick = () => {
-  authMode(false);
-};
+if ($("loginBtn")) {
 
-$("signupBtn").onclick = () => {
-  authMode(true);
-};
+  $("loginBtn").onclick = () => {
+    authMode(false);
+  };
 
-$("heroSignup").onclick = () => {
-  authMode(true);
-};
+}
 
-$("heroLogin").onclick = () => {
-  authMode(false);
-};
+if ($("signupBtn")) {
 
-$("cta").onclick = () => {
-  authMode(true);
-};
+  $("signupBtn").onclick = () => {
+    authMode(true);
+  };
 
-$("switch").onclick = () => {
-  authMode(!signup);
-};
+}
+
+if ($("heroSignup")) {
+
+  $("heroSignup").onclick = () => {
+    authMode(true);
+  };
+
+}
+
+if ($("heroLogin")) {
+
+  $("heroLogin").onclick = () => {
+    authMode(false);
+  };
+
+}
+
+if ($("cta")) {
+
+  $("cta").onclick = () => {
+    authMode(true);
+  };
+
+}
+
+if ($("switch")) {
+
+  $("switch").onclick = () => {
+    authMode(!signup);
+  };
+
+}
 
 
 /* =========================================================
-   MODAL CLOSE
+   CLOSE BUTTONS
    ========================================================= */
 
-document.querySelectorAll("[data-close]").forEach(button => {
+document
+  .querySelectorAll("[data-close]")
+  .forEach(button => {
 
-  button.onclick = close;
+    button.onclick = () => {
+      closeModals();
+    };
 
-});
+  });
 
 
-document.querySelectorAll(".modal").forEach(modal => {
+/* =========================================================
+   CLICK OUTSIDE MODAL TO CLOSE
+   ========================================================= */
 
-  modal.onclick = event => {
+document
+  .querySelectorAll(".modal")
+  .forEach(modal => {
 
-    if (event.target === modal) {
-      close();
+    modal.addEventListener("click", event => {
+
+      if (event.target === modal) {
+        closeModals();
+      }
+
+    });
+
+  });
+
+
+/* =========================================================
+   SIGNUP / LOGIN
+   ========================================================= */
+
+if ($("authForm")) {
+
+  $("authForm").onsubmit = async event => {
+
+    event.preventDefault();
+
+    setText("authMsg", "Please wait…");
+
+
+    try {
+
+      /* -----------------------------------------
+         SIGN UP
+         ----------------------------------------- */
+
+      if (signup) {
+
+        const name =
+          $("name")?.value.trim() || "";
+
+        const college =
+          $("college")?.value.trim() ||
+          "XIME Chennai";
+
+        const email =
+          $("email")?.value.trim() || "";
+
+        const password =
+          $("password")?.value || "";
+
+
+        const response =
+          await sb.auth.signUp({
+
+            email: email,
+
+            password: password,
+
+            options: {
+
+              data: {
+
+                full_name: name,
+
+                college: college
+
+              }
+
+            }
+
+          });
+
+
+        if (response.error) {
+          throw response.error;
+        }
+
+
+        /*
+         Supabase email confirmation
+        */
+
+        if (!response.data.session) {
+
+          setText(
+            "authMsg",
+            "Account created. Check your email, then log in."
+          );
+
+          return;
+
+        }
+
+      }
+
+
+      /* -----------------------------------------
+         LOGIN
+         ----------------------------------------- */
+
+      else {
+
+        const email =
+          $("email")?.value.trim() || "";
+
+        const password =
+          $("password")?.value || "";
+
+
+        const response =
+          await sb.auth.signInWithPassword({
+
+            email: email,
+
+            password: password
+
+          });
+
+
+        if (response.error) {
+          throw response.error;
+        }
+
+      }
+
+
+      closeModals();
+
+
+      const session =
+        await sb.auth.getSession();
+
+
+      user =
+        session.data.session?.user || null;
+
+
+      await updateUI();
+
+      await loadDashboard();
+
+    }
+
+
+    catch (error) {
+
+      console.error(
+        "Authentication error:",
+        error
+      );
+
+
+      setText(
+        "authMsg",
+        error.message ||
+        "Something went wrong."
+      );
+
     }
 
   };
 
-});
+}
 
 
 /* =========================================================
-   SIGN UP / LOGIN
-   ========================================================= */
-
-$("authForm").onsubmit = async event => {
-
-  event.preventDefault();
-
-  $("authMsg").textContent = "Please wait…";
-
-  try {
-
-    /* -------------------------
-       SIGN UP
-       ------------------------- */
-
-    if (signup) {
-
-      const fullName =
-        $("name").value.trim();
-
-      const college =
-        $("college").value.trim();
-
-      const email =
-        $("email").value.trim();
-
-      const password =
-        $("password").value;
-
-
-      const response =
-        await sb.auth.signUp({
-
-          email: email,
-
-          password: password,
-
-          options: {
-
-            data: {
-
-              full_name: fullName,
-
-              college: college
-
-            }
-
-          }
-
-        });
-
-
-      if (response.error) {
-        throw response.error;
-      }
-
-
-      /*
-       Supabase may require email confirmation.
-      */
-
-      if (!response.data.session) {
-
-        $("authMsg").textContent =
-          "Account created. Check your email, then log in.";
-
-        return;
-
-      }
-
-    }
-
-
-    /* -------------------------
-       LOGIN
-       ------------------------- */
-
-    else {
-
-      const email =
-        $("email").value.trim();
-
-      const password =
-        $("password").value;
-
-
-      const response =
-        await sb.auth.signInWithPassword({
-
-          email: email,
-
-          password: password
-
-        });
-
-
-      if (response.error) {
-        throw response.error;
-      }
-
-    }
-
-
-    close();
-
-
-    const sessionResponse =
-      await sb.auth.getSession();
-
-    user =
-      sessionResponse.data.session?.user || null;
-
-
-    await updateUI();
-
-    await loadDash();
-
-
-  } catch (error) {
-
-    console.error(error);
-
-    $("authMsg").textContent =
-      error.message ||
-      "Something went wrong.";
-
-  }
-
-};
-
-
-/* =========================================================
-   USER UI
+   UPDATE NAVIGATION UI
    ========================================================= */
 
 async function updateUI() {
 
   if (!user) {
 
-    hide("userMenu");
-
     show("loginBtn");
     show("signupBtn");
+
+    hide("userMenu");
 
     return;
 
@@ -301,11 +394,20 @@ async function updateUI() {
     "Student";
 
 
-  $("avatar").textContent =
-    name.charAt(0).toUpperCase();
+  if ($("avatar")) {
 
-  $("userLabel").textContent =
-    name;
+    $("avatar").textContent =
+      name.charAt(0).toUpperCase();
+
+  }
+
+
+  if ($("userLabel")) {
+
+    $("userLabel").textContent =
+      name;
+
+  }
 
 }
 
@@ -314,71 +416,62 @@ async function updateUI() {
    USER DROPDOWN
    ========================================================= */
 
-$("avatar").onclick = () => {
+if ($("avatar")) {
 
-  $("drop").classList.toggle("hidden");
+  $("avatar").onclick = () => {
 
-};
+    if ($("drop")) {
+      $("drop").classList.toggle("hidden");
+    }
+
+  };
+
+}
 
 
-$("logoutBtn").onclick = async () => {
+if ($("logoutBtn")) {
 
-  await sb.auth.signOut();
+  $("logoutBtn").onclick = async () => {
 
-  user = null;
+    try {
 
-  close();
+      await sb.auth.signOut();
 
-  hide("drop");
+    } catch (error) {
 
-  await updateUI();
+      console.error(error);
 
-};
+    }
+
+
+    user = null;
+
+    selectedMood = null;
+
+    hide("drop");
+
+    closeModals();
+
+    await updateUI();
+
+  };
+
+}
 
 
 /* =========================================================
    DASHBOARD BUTTON
    ========================================================= */
 
-$("dashboardBtn").onclick = async () => {
+if ($("dashboardBtn")) {
 
-  hide("drop");
+  $("dashboardBtn").onclick = async () => {
 
-  await dash();
+    hide("drop");
 
-};
+    await openDashboard();
 
-
-/* =========================================================
-   GET STUDENT PROFILE
-   ========================================================= */
-
-async function getProfile() {
-
-  if (!user) return null;
-
-
-  const response =
-    await sb
-      .from("profiles")
-      .select("*")
-      .eq("id", user.id)
-      .maybeSingle();
-
-
-  if (response.error) {
-
-    console.error(
-      "Profile error:",
-      response.error
-    );
-
-    return null;
-
-  }
-
-
-  return response.data;
+  };
 
 }
 
@@ -387,7 +480,7 @@ async function getProfile() {
    OPEN DASHBOARD
    ========================================================= */
 
-async function dash() {
+async function openDashboard() {
 
   if (!user) {
 
@@ -400,7 +493,55 @@ async function dash() {
 
   show("dash");
 
-  await loadDash();
+  await loadDashboard();
+
+}
+
+
+/* =========================================================
+   GET PROFILE
+   ========================================================= */
+
+async function getProfile() {
+
+  if (!user) {
+    return null;
+  }
+
+
+  try {
+
+    const response =
+      await sb
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .maybeSingle();
+
+
+    if (response.error) {
+
+      console.error(
+        "Profile error:",
+        response.error
+      );
+
+      return null;
+
+    }
+
+
+    return response.data;
+
+  }
+
+  catch (error) {
+
+    console.error(error);
+
+    return null;
+
+  }
 
 }
 
@@ -409,22 +550,24 @@ async function dash() {
    LOAD DASHBOARD
    ========================================================= */
 
-async function loadDash() {
+async function loadDashboard() {
 
-  if (!sb || !user) return;
+  if (!user) {
+    return;
+  }
 
 
   try {
 
-    /* =====================================================
+    /* -----------------------------------------
        PROFILE
-       ===================================================== */
+       ----------------------------------------- */
 
     const profile =
       await getProfile();
 
 
-    const name =
+    const studentName =
       profile?.full_name ||
       user.user_metadata?.full_name ||
       user.email?.split("@")[0] ||
@@ -437,15 +580,48 @@ async function loadDash() {
       "XIME Chennai";
 
 
-    const roll =
-      profile?.roll_number ||
-      "Roll number not added";
+    /* -----------------------------------------
+       WELCOME MESSAGE
+       ----------------------------------------- */
 
-
-    $("welcome").textContent =
+    setText(
+      "welcome",
       "Welcome back, " +
-      name.split(" ")[0] +
-      " 👋";
+      studentName.split(" ")[0] +
+      " 👋"
+    );
+
+
+    /* -----------------------------------------
+       OPTIONAL PROFILE INFORMATION
+       ----------------------------------------- */
+
+    setText(
+      "dashName",
+      studentName
+    );
+
+    setText(
+      "dashCollege",
+      college
+    );
+
+
+    if ($("dashRoll")) {
+
+      $("dashRoll").textContent =
+        profile?.roll_number ||
+        "Roll number not added";
+
+    }
+
+
+    if ($("bigAvatar")) {
+
+      $("bigAvatar").textContent =
+        studentName.charAt(0).toUpperCase();
+
+    }
 
 
     if ($("studentMeta")) {
@@ -460,41 +636,9 @@ async function loadDash() {
     }
 
 
-    if ($("dashName")) {
-
-      $("dashName").textContent =
-        name;
-
-    }
-
-
-    if ($("dashCollege")) {
-
-      $("dashCollege").textContent =
-        college;
-
-    }
-
-
-    if ($("dashRoll")) {
-
-      $("dashRoll").textContent =
-        roll;
-
-    }
-
-
-    if ($("bigAvatar")) {
-
-      $("bigAvatar").textContent =
-        name.charAt(0).toUpperCase();
-
-    }
-
-
-    /* =====================================================
-       MOOD CHECK-INS
-       ===================================================== */
+    /* -----------------------------------------
+       GET MOOD CHECK-INS
+       ----------------------------------------- */
 
     const moodResponse =
       await sb
@@ -503,14 +647,13 @@ async function loadDash() {
         .eq("user_id", user.id)
         .order("created_at", {
           ascending: false
-        })
-        .limit(8);
+        });
 
 
     if (moodResponse.error) {
 
       console.error(
-        "Mood error:",
+        "Mood loading error:",
         moodResponse.error
       );
 
@@ -521,9 +664,9 @@ async function loadDash() {
       moodResponse.data || [];
 
 
-    /* =====================================================
-       APPOINTMENTS
-       ===================================================== */
+    /* -----------------------------------------
+       GET APPOINTMENTS
+       ----------------------------------------- */
 
     const appointmentResponse =
       await sb
@@ -538,7 +681,7 @@ async function loadDash() {
     if (appointmentResponse.error) {
 
       console.error(
-        "Appointment error:",
+        "Appointment loading error:",
         appointmentResponse.error
       );
 
@@ -549,14 +692,16 @@ async function loadDash() {
       appointmentResponse.data || [];
 
 
-    /* =====================================================
+    /* -----------------------------------------
        LATEST MOOD
-       ===================================================== */
+       ----------------------------------------- */
 
     if ($("latest")) {
 
       $("latest").textContent =
-        moods[0]?.mood || "—";
+        moods.length
+          ? moods[0].mood
+          : "—";
 
     }
 
@@ -564,18 +709,18 @@ async function loadDash() {
     if ($("latestDate")) {
 
       $("latestDate").textContent =
-        moods[0]
-          ? new Date(
+        moods.length
+          ? formatDateTime(
               moods[0].created_at
-            ).toLocaleString()
+            )
           : "No check-ins yet";
 
     }
 
 
-    /* =====================================================
+    /* -----------------------------------------
        CHECK-IN COUNT
-       ===================================================== */
+       ----------------------------------------- */
 
     if ($("count")) {
 
@@ -585,47 +730,74 @@ async function loadDash() {
     }
 
 
-    /* =====================================================
-       FIND NEXT APPOINTMENT
-       ===================================================== */
+    /* -----------------------------------------
+       UPCOMING APPOINTMENT
+       ----------------------------------------- */
 
-    const now = new Date();
-
-
-    const futureAppointments =
-      appointments.filter(appointment => {
-
-        if (
-          !appointment.appointment_date ||
-          !appointment.appointment_time
-        ) {
-
-          return false;
-
-        }
+    const now =
+      new Date();
 
 
-        const dateTime =
-          new Date(
-            appointment.appointment_date +
-            "T" +
-            appointment.appointment_time
-          );
+    const upcoming =
+      appointments
+        .filter(appointment => {
+
+          if (
+            !appointment.appointment_date ||
+            !appointment.appointment_time
+          ) {
+
+            return false;
+
+          }
 
 
-        return dateTime >= now;
+          const appointmentDate =
+            new Date(
+              appointment.appointment_date +
+              "T" +
+              appointment.appointment_time
+            );
 
-      });
+
+          return appointmentDate >= now;
+
+        })
+        .sort((a, b) => {
+
+          const dateA =
+            new Date(
+              a.appointment_date +
+              "T" +
+              a.appointment_time
+            );
+
+          const dateB =
+            new Date(
+              b.appointment_date +
+              "T" +
+              b.appointment_time
+            );
+
+          return dateA - dateB;
+
+        });
 
 
-    const next =
-      futureAppointments[0];
+    const nextAppointment =
+      upcoming[0] || null;
 
+
+    /* -----------------------------------------
+       SHOW UPCOMING SESSION
+       ----------------------------------------- */
 
     if ($("next")) {
 
       $("next").textContent =
-        next?.support_type || "—";
+        nextAppointment
+          ? nextAppointment.support_type
+          : "—";
 
     }
 
@@ -633,16 +805,18 @@ async function loadDash() {
     if ($("nextDate")) {
 
       $("nextDate").textContent =
-        next
-          ? formatAppointmentDate(next)
+        nextAppointment
+          ? formatAppointment(
+              nextAppointment
+            )
           : "No appointment booked";
 
     }
 
 
-    /* =====================================================
-       MOOD HISTORY
-       ===================================================== */
+    /* -----------------------------------------
+       RECENT CHECK-INS
+       ----------------------------------------- */
 
     if ($("history")) {
 
@@ -651,22 +825,24 @@ async function loadDash() {
         $("history").innerHTML =
           "<p>No check-ins yet.</p>";
 
-      } else {
+      }
+
+      else {
+
+        /*
+         Show latest 8
+        */
 
         $("history").innerHTML =
           moods
+            .slice(0, 8)
             .map(item => {
-
-              const date =
-                new Date(
-                  item.created_at
-                ).toLocaleDateString();
 
               return `
                 <p>
                   ${escapeHTML(item.mood)}
                   <span style="float:right">
-                    ${date}
+                    ${formatDateOnly(item.created_at)}
                   </span>
                 </p>
               `;
@@ -678,8 +854,9 @@ async function loadDash() {
 
     }
 
+  }
 
-  } catch (error) {
+  catch (error) {
 
     console.error(
       "Dashboard error:",
@@ -692,68 +869,51 @@ async function loadDash() {
 
 
 /* =========================================================
-   FORMAT APPOINTMENT DATE
-   ========================================================= */
-
-function formatAppointmentDate(appointment) {
-
-  const date =
-    new Date(
-      appointment.appointment_date +
-      "T" +
-      appointment.appointment_time
-    );
-
-
-  return date.toLocaleDateString(
-    undefined,
-    {
-      day: "numeric",
-      month: "short",
-      year: "numeric"
-    }
-  ) +
-  " · " +
-  date.toLocaleTimeString(
-    undefined,
-    {
-      hour: "numeric",
-      minute: "2-digit"
-    }
-  );
-
-}
-
-
-/* =========================================================
    REFRESH BUTTON
    ========================================================= */
 
-$("refresh").onclick = async () => {
+if ($("refresh")) {
 
-  const button = $("refresh");
+  $("refresh").onclick = async () => {
 
-
-  button.textContent =
-    "Refreshing…";
-
-  button.disabled = true;
+    const button =
+      $("refresh");
 
 
-  try {
+    button.disabled = true;
 
-    await loadDash();
+    const oldText =
+      button.textContent;
 
-  } finally {
 
     button.textContent =
-      "Refresh";
+      "Refreshing…";
 
-    button.disabled = false;
 
-  }
+    try {
 
-};
+      await loadDashboard();
+
+    }
+
+    catch (error) {
+
+      console.error(error);
+
+    }
+
+    finally {
+
+      button.textContent =
+        oldText || "Refresh";
+
+      button.disabled = false;
+
+    }
+
+  };
+
+}
 
 
 /* =========================================================
@@ -777,15 +937,20 @@ document
         });
 
 
-      button.classList.add("selected");
+      button.classList.add(
+        "selected"
+      );
 
 
-      mood =
+      selectedMood =
         button.dataset.mood;
 
 
-      $("checkMsg").textContent =
-        "Selected: " + mood;
+      setText(
+        "checkMsg",
+        "Selected: " +
+        selectedMood
+      );
 
     };
 
@@ -793,10 +958,109 @@ document
 
 
 /* =========================================================
-   SAVE MOOD CHECK-IN
+   SAVE MOOD
    ========================================================= */
 
-$("checkin").onclick = async () => {
+if ($("checkin")) {
+
+  $("checkin").onclick = async () => {
+
+    if (!user) {
+
+      authMode(true);
+
+      return;
+
+    }
+
+
+    if (!selectedMood) {
+
+      setText(
+        "checkMsg",
+        "Choose a mood first."
+      );
+
+      return;
+
+    }
+
+
+    setText(
+      "checkMsg",
+      "Saving…"
+    );
+
+
+    try {
+
+      const response =
+        await sb
+          .from("mood_checkins")
+          .insert({
+
+            user_id: user.id,
+
+            mood: selectedMood
+
+          });
+
+
+      if (response.error) {
+        throw response.error;
+      }
+
+
+      setText(
+        "checkMsg",
+        "Saved privately to your account ✓"
+      );
+
+
+      /* Clear selected mood */
+
+      document
+        .querySelectorAll("[data-mood]")
+        .forEach(button => {
+
+          button.classList.remove(
+            "selected"
+          );
+
+        });
+
+
+      selectedMood = null;
+
+
+      /* Refresh dashboard */
+
+      await loadDashboard();
+
+    }
+
+    catch (error) {
+
+      console.error(error);
+
+      setText(
+        "checkMsg",
+        error.message ||
+        "Could not save check-in."
+      );
+
+    }
+
+  };
+
+}
+
+
+/* =========================================================
+   OPEN BOOKING MODAL
+   ========================================================= */
+
+function openBooking() {
 
   if (!user) {
 
@@ -807,92 +1071,296 @@ $("checkin").onclick = async () => {
   }
 
 
-  if (!mood) {
-
-    $("checkMsg").textContent =
-      "Choose a mood first.";
-
-    return;
-
-  }
+  resetBooking();
 
 
-  $("checkMsg").textContent =
-    "Saving…";
+  show("booking");
 
-
-  const response =
-    await sb
-      .from("mood_checkins")
-      .insert({
-
-        user_id: user.id,
-
-        mood: mood
-
-      });
-
-
-  if (response.error) {
-
-    console.error(
-      response.error
-    );
-
-    $("checkMsg").textContent =
-      response.error.message;
-
-    return;
-
-  }
-
-
-  $("checkMsg").textContent =
-    "Saved privately to your account ✓";
-
-
-  /* Clear selected mood */
-
-  document
-    .querySelectorAll("[data-mood]")
-    .forEach(button => {
-
-      button.classList.remove(
-        "selected"
-      );
-
-    });
-
-
-  mood = null;
-
-
-  /* Update dashboard */
-
-  await loadDash();
-
-};
+}
 
 
 /* =========================================================
-   OPEN PROFILE
+   BOOK BUTTON
    ========================================================= */
 
-$("profileBtn").onclick = async () => {
+if ($("bookBtn")) {
 
-  hide("drop");
+  $("bookBtn").onclick = () => {
 
-  await openProfile();
+    openBooking();
 
-};
+  };
+
+}
 
 
-$("editProfile").onclick = async () => {
+/* =========================================================
+   OTHER BOOK BUTTONS
+   ========================================================= */
 
-  await openProfile();
+document
+  .querySelectorAll(".book")
+  .forEach(button => {
 
-};
+    button.onclick = () => {
 
+      openBooking();
+
+    };
+
+  });
+
+
+/* =========================================================
+   RESET BOOKING FORM
+   ========================================================= */
+
+function resetBooking() {
+
+  const form =
+    $("bookingForm");
+
+
+  if (form) {
+
+    form.reset();
+
+  }
+
+
+  /*
+   Reset support type
+   */
+
+  if ($("type")) {
+
+    $("type").selectedIndex = 0;
+
+  }
+
+
+  /*
+   Clear date
+   */
+
+  if ($("date")) {
+
+    $("date").value = "";
+
+  }
+
+
+  /*
+   Clear time
+   */
+
+  if ($("time")) {
+
+    $("time").value = "";
+
+  }
+
+
+  setText(
+    "bookMsg",
+    ""
+  );
+
+}
+
+
+/* =========================================================
+   BOOKING FORM
+   ========================================================= */
+
+if ($("bookingForm")) {
+
+  $("bookingForm").onsubmit =
+    async event => {
+
+      event.preventDefault();
+
+
+      if (!user) {
+
+        authMode(true);
+
+        return;
+
+      }
+
+
+      const supportType =
+        $("type")?.value || "";
+
+
+      const appointmentDate =
+        $("date")?.value || "";
+
+
+      const appointmentTime =
+        $("time")?.value || "";
+
+
+      /* -----------------------------------------
+         VALIDATION
+         ----------------------------------------- */
+
+      if (
+        !supportType ||
+        !appointmentDate ||
+        !appointmentTime
+      ) {
+
+        setText(
+          "bookMsg",
+          "Please fill in all the details."
+        );
+
+        return;
+
+      }
+
+
+      /* -----------------------------------------
+         PREVENT PAST APPOINTMENTS
+         ----------------------------------------- */
+
+      const selectedDateTime =
+        new Date(
+          appointmentDate +
+          "T" +
+          appointmentTime
+        );
+
+
+      if (
+        selectedDateTime <
+        new Date()
+      ) {
+
+        setText(
+          "bookMsg",
+          "Please choose a future date and time."
+        );
+
+        return;
+
+      }
+
+
+      setText(
+        "bookMsg",
+        "Saving your appointment…"
+      );
+
+
+      try {
+
+        /* -----------------------------------------
+           INSERT INTO SUPABASE
+           ----------------------------------------- */
+
+        const response =
+          await sb
+            .from("appointments")
+            .insert({
+
+              user_id:
+                user.id,
+
+              support_type:
+                supportType,
+
+              appointment_date:
+                appointmentDate,
+
+              appointment_time:
+                appointmentTime,
+
+              status:
+                "requested"
+
+            });
+
+
+        if (response.error) {
+          throw response.error;
+        }
+
+
+        /* -----------------------------------------
+           SUCCESS
+           ----------------------------------------- */
+
+        setText(
+          "bookMsg",
+          "Appointment booked ✓"
+        );
+
+
+        /*
+         IMPORTANT:
+         Clear the booking form immediately.
+        */
+
+        resetBooking();
+
+
+        /*
+         Reload dashboard directly
+         from Supabase.
+        */
+
+        await loadDashboard();
+
+
+        /*
+         Wait briefly so user sees success.
+        */
+
+        setTimeout(() => {
+
+          closeModals();
+
+          show("dash");
+
+          /*
+           One final refresh after opening
+           dashboard.
+          */
+
+          loadDashboard();
+
+        }, 700);
+
+      }
+
+
+      catch (error) {
+
+        console.error(
+          "Booking error:",
+          error
+        );
+
+
+        setText(
+          "bookMsg",
+          error.message ||
+          "Could not book appointment."
+        );
+
+      }
+
+    };
+
+}
+
+
+/* =========================================================
+   PROFILE
+   ========================================================= */
 
 async function openProfile() {
 
@@ -909,46 +1377,66 @@ async function openProfile() {
     await getProfile();
 
 
-  const fallbackName =
-    user.user_metadata?.full_name || "";
+  if ($("pName")) {
+
+    $("pName").value =
+      profile?.full_name ||
+      user.user_metadata?.full_name ||
+      "";
+
+  }
 
 
-  const fallbackCollege =
-    user.user_metadata?.college ||
-    "XIME Chennai";
+  if ($("pRoll")) {
+
+    $("pRoll").value =
+      profile?.roll_number ||
+      "";
+
+  }
 
 
-  $("pName").value =
-    profile?.full_name ||
-    fallbackName;
+  if ($("pBatch")) {
+
+    $("pBatch").value =
+      profile?.batch ||
+      "";
+
+  }
 
 
-  $("pRoll").value =
-    profile?.roll_number ||
-    "";
+  if ($("pProgramme")) {
+
+    $("pProgramme").value =
+      profile?.programme ||
+      "";
+
+  }
 
 
-  $("pBatch").value =
-    profile?.batch ||
-    "";
+  if ($("pCollege")) {
+
+    $("pCollege").value =
+      profile?.college ||
+      user.user_metadata?.college ||
+      "XIME Chennai";
+
+  }
 
 
-  $("pProgramme").value =
-    profile?.programme ||
-    "";
+  if ($("pPhone")) {
+
+    $("pPhone").value =
+      profile?.phone ||
+      "";
+
+  }
 
 
-  $("pCollege").value =
-    profile?.college ||
-    fallbackCollege;
-
-
-  $("pPhone").value =
-    profile?.phone ||
-    "";
-
-
-  $("profileMsg").textContent = "";
+  setText(
+    "profileMsg",
+    ""
+  );
 
 
   show("profile");
@@ -957,156 +1445,45 @@ async function openProfile() {
 
 
 /* =========================================================
-   SAVE PROFILE
+   PROFILE BUTTONS
    ========================================================= */
 
-$("profileForm").onsubmit = async event => {
+if ($("profileBtn")) {
 
-  event.preventDefault();
+  $("profileBtn").onclick = async () => {
 
+    hide("drop");
 
-  if (!user) {
-
-    authMode(true);
-
-    return;
-
-  }
-
-
-  $("profileMsg").textContent =
-    "Saving…";
-
-
-  const profileData = {
-
-    id: user.id,
-
-    full_name:
-      $("pName").value.trim(),
-
-    roll_number:
-      $("pRoll").value.trim(),
-
-    batch:
-      $("pBatch").value.trim(),
-
-    programme:
-      $("pProgramme").value.trim(),
-
-    college:
-      $("pCollege").value.trim(),
-
-    phone:
-      $("pPhone").value.trim(),
-
-    updated_at:
-      new Date().toISOString()
+    await openProfile();
 
   };
 
-
-  const response =
-    await sb
-      .from("profiles")
-      .upsert(
-        profileData,
-        {
-          onConflict: "id"
-        }
-      );
+}
 
 
-  if (response.error) {
+if ($("editProfile")) {
 
-    console.error(
-      response.error
-    );
+  $("editProfile").onclick =
+    async () => {
 
-    $("profileMsg").textContent =
-      response.error.message;
+      await openProfile();
 
-    return;
+    };
 
-  }
-
-
-  $("profileMsg").textContent =
-    "Profile saved ✓";
-
-
-  /* Update user metadata too */
-
-  await sb.auth.updateUser({
-
-    data: {
-
-      full_name:
-        $("pName").value.trim(),
-
-      college:
-        $("pCollege").value.trim()
-
-    }
-
-  });
-
-
-  /* Reload current user */
-
-  const sessionResponse =
-    await sb.auth.getSession();
-
-  user =
-    sessionResponse.data.session?.user ||
-    user;
-
-
-  await updateUI();
-
-  await loadDash();
-
-
-  setTimeout(() => {
-
-    close();
-
-  }, 700);
-
-};
+}
 
 
 /* =========================================================
-   BOOKING — OPEN BUTTON
+   SAVE PROFILE
    ========================================================= */
 
-$("bookBtn").onclick = () => {
+if ($("profileForm")) {
 
-  if (!user) {
+  $("profileForm").onsubmit =
+    async event => {
 
-    authMode(true);
+      event.preventDefault();
 
-    return;
-
-  }
-
-
-  resetBookingForm();
-
-  show("booking");
-
-};
-
-
-/* =========================================================
-   ALL SUPPORT / BOOK BUTTONS
-   ========================================================= */
-
-document
-  .querySelectorAll(".book")
-  .forEach(button => {
-
-    button.onclick = () => {
 
       if (!user) {
 
@@ -1117,194 +1494,124 @@ document
       }
 
 
-      resetBookingForm();
+      setText(
+        "profileMsg",
+        "Saving…"
+      );
 
-      show("booking");
+
+      try {
+
+        const profileData = {
+
+          id: user.id,
+
+          full_name:
+            $("pName")?.value.trim() ||
+            "",
+
+          roll_number:
+            $("pRoll")?.value.trim() ||
+            "",
+
+          batch:
+            $("pBatch")?.value.trim() ||
+            "",
+
+          programme:
+            $("pProgramme")?.value.trim() ||
+            "",
+
+          college:
+            $("pCollege")?.value.trim() ||
+            "",
+
+          phone:
+            $("pPhone")?.value.trim() ||
+            "",
+
+          updated_at:
+            new Date().toISOString()
+
+        };
+
+
+        const response =
+          await sb
+            .from("profiles")
+            .upsert(
+              profileData,
+              {
+                onConflict: "id"
+              }
+            );
+
+
+        if (response.error) {
+          throw response.error;
+        }
+
+
+        /*
+         Also update login metadata
+        */
+
+        await sb.auth.updateUser({
+
+          data: {
+
+            full_name:
+              profileData.full_name,
+
+            college:
+              profileData.college
+
+          }
+
+        });
+
+
+        setText(
+          "profileMsg",
+          "Profile saved ✓"
+        );
+
+
+        await loadDashboard();
+
+        await updateUI();
+
+
+        setTimeout(() => {
+
+          closeModals();
+
+          show("dash");
+
+        }, 700);
+
+      }
+
+
+      catch (error) {
+
+        console.error(
+          "Profile error:",
+          error
+        );
+
+
+        setText(
+          "profileMsg",
+          error.message ||
+          "Could not save profile."
+        );
+
+      }
 
     };
 
-  });
-
-
-/* =========================================================
-   RESET BOOKING FORM
-   ========================================================= */
-
-function resetBookingForm() {
-
-  const form =
-    $("bookingForm");
-
-
-  if (form) {
-
-    form.reset();
-
-  }
-
-
-  $("bookMsg").textContent = "";
-
-
-  /*
-   Explicitly reset support type
-   to the first option.
-  */
-
-  const type =
-    $("type");
-
-  if (type && type.options.length) {
-
-    type.selectedIndex = 0;
-
-  }
-
 }
-
-
-/* =========================================================
-   BOOK APPOINTMENT
-   ========================================================= */
-
-$("bookingForm").onsubmit = async event => {
-
-  event.preventDefault();
-
-
-  if (!user) {
-
-    authMode(true);
-
-    return;
-
-  }
-
-
-  const supportType =
-    $("type").value;
-
-
-  const appointmentDate =
-    $("date").value;
-
-
-  const appointmentTime =
-    $("time").value;
-
-
-  if (
-    !supportType ||
-    !appointmentDate ||
-    !appointmentTime
-  ) {
-
-    $("bookMsg").textContent =
-      "Please fill in all the details.";
-
-    return;
-
-  }
-
-
-  /* Prevent past dates/times */
-
-  const selectedDateTime =
-    new Date(
-      appointmentDate +
-      "T" +
-      appointmentTime
-    );
-
-
-  if (
-    selectedDateTime <
-    new Date()
-  ) {
-
-    $("bookMsg").textContent =
-      "Please choose a future date and time.";
-
-    return;
-
-  }
-
-
-  $("bookMsg").textContent =
-    "Saving your appointment…";
-
-
-  const response =
-    await sb
-      .from("appointments")
-      .insert({
-
-        user_id: user.id,
-
-        support_type:
-          supportType,
-
-        appointment_date:
-          appointmentDate,
-
-        appointment_time:
-          appointmentTime,
-
-        status:
-          "requested"
-
-      });
-
-
-  if (response.error) {
-
-    console.error(
-      response.error
-    );
-
-    $("bookMsg").textContent =
-      response.error.message;
-
-    return;
-
-  }
-
-
-  /* SUCCESS */
-
-  $("bookMsg").textContent =
-    "Appointment requested ✓";
-
-
-  /*
-   IMPORTANT:
-   Clear the form immediately.
-  */
-
-  resetBookingForm();
-
-
-  /*
-   Pull the new appointment
-   from Supabase.
-  */
-
-  await loadDash();
-
-
-  /*
-   Close booking modal.
-  */
-
-  setTimeout(() => {
-
-    close();
-
-    show("dash");
-
-  }, 800);
-
-};
 
 
 /* =========================================================
@@ -1315,14 +1622,22 @@ if ($("dashCheckin")) {
 
   $("dashCheckin").onclick = () => {
 
-    close();
+    closeModals();
 
-    document
-      .querySelector("[data-mood]")
-      ?.scrollIntoView({
+    const firstMood =
+      document.querySelector(
+        "[data-mood]"
+      );
+
+
+    if (firstMood) {
+
+      firstMood.scrollIntoView({
         behavior: "smooth",
         block: "center"
       });
+
+    }
 
   };
 
@@ -1330,12 +1645,29 @@ if ($("dashCheckin")) {
 
 
 /* =========================================================
-   RESOURCES
+   RESOURCE BUTTONS
    ========================================================= */
 
 function resource(title, text) {
 
-  $("toast").innerHTML =
+  const toast =
+    $("toast");
+
+
+  if (!toast) {
+
+    alert(
+      title +
+      "\n\n" +
+      text
+    );
+
+    return;
+
+  }
+
+
+  toast.innerHTML =
     "<strong>" +
     escapeHTML(title) +
     "</strong><br>" +
@@ -1355,38 +1687,140 @@ function resource(title, text) {
 
 
 /* =========================================================
-   DEMO REQUEST
+   DEMO BUTTON
    ========================================================= */
 
-$("demo").onclick = () => {
+if ($("demo")) {
 
-  show("demoModal");
+  $("demo").onclick = () => {
 
-};
+    show("demoModal");
 
+  };
 
-$("demoForm").onsubmit = event => {
-
-  event.preventDefault();
-
-
-  $("demoMsg").textContent =
-    "Demo request captured ✓";
+}
 
 
-  event.target.reset();
+if ($("demoForm")) {
 
-};
+  $("demoForm").onsubmit =
+    event => {
+
+      event.preventDefault();
+
+
+      setText(
+        "demoMsg",
+        "Demo request captured ✓"
+      );
+
+
+      event.target.reset();
+
+    };
+
+}
 
 
 /* =========================================================
-   ESCAPE HTML
+   DATE HELPERS
+   ========================================================= */
+
+function formatDateOnly(dateString) {
+
+  try {
+
+    return new Date(
+      dateString
+    ).toLocaleDateString();
+
+  }
+
+  catch {
+
+    return dateString;
+
+  }
+
+}
+
+
+function formatDateTime(dateString) {
+
+  try {
+
+    return new Date(
+      dateString
+    ).toLocaleString();
+
+  }
+
+  catch {
+
+    return dateString;
+
+  }
+
+}
+
+
+function formatAppointment(appointment) {
+
+  try {
+
+    const date =
+      new Date(
+        appointment.appointment_date +
+        "T" +
+        appointment.appointment_time
+      );
+
+
+    return date.toLocaleDateString(
+      undefined,
+      {
+        year: "numeric",
+        month: "short",
+        day: "numeric"
+      }
+    ) +
+    " · " +
+    date.toLocaleTimeString(
+      undefined,
+      {
+        hour: "numeric",
+        minute: "2-digit"
+      }
+    );
+
+  }
+
+  catch {
+
+    return (
+      appointment.appointment_date +
+      " · " +
+      appointment.appointment_time
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   SECURITY / HTML ESCAPING
    ========================================================= */
 
 function escapeHTML(value) {
 
-  if (value === null || value === undefined) {
+  if (
+    value === null ||
+    value === undefined
+  ) {
+
     return "";
+
   }
 
 
@@ -1401,10 +1835,28 @@ function escapeHTML(value) {
 
 
 /* =========================================================
-   AUTH SESSION ON PAGE LOAD
+   KEYBOARD ESCAPE
    ========================================================= */
 
-(async () => {
+document.addEventListener(
+  "keydown",
+  event => {
+
+    if (event.key === "Escape") {
+
+      closeModals();
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   START APPLICATION
+   ========================================================= */
+
+(async function startApp() {
 
   try {
 
@@ -1422,10 +1874,19 @@ function escapeHTML(value) {
 
     if (user) {
 
-      await loadDash();
+      /*
+       Don't automatically open dashboard.
+       Just make sure the data is ready.
+      */
+
+      await loadDashboard();
 
     }
 
+
+    /*
+     Listen for login/logout changes.
+    */
 
     sb.auth.onAuthStateChange(
       async (_event, session) => {
@@ -1440,11 +1901,13 @@ function escapeHTML(value) {
       }
     );
 
+  }
 
-  } catch (error) {
+
+  catch (error) {
 
     console.error(
-      "Startup error:",
+      "MindCampus startup error:",
       error
     );
 
