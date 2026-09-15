@@ -1,813 +1,831 @@
 <!doctype html>
 <html lang="en">
+
 <head>
+
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  >
 
   <title>MindCampus — Student Wellbeing</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link
+    rel="preconnect"
+    href="https://fonts.gstatic.com"
+    crossorigin
+  >
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap"
+    rel="stylesheet"
+  >
 
   <link rel="stylesheet" href="style.css">
 
-  <style>
-    /* ================================
-       FULL PAGE DASHBOARD
-       ================================ */
-
-    .hidden {
-      display: none !important;
-    }
-
-    .dashboard-page {
-      min-height: 100vh;
-      background: #fff;
-    }
-
-    .dashboard-page header {
-      position: sticky;
-      top: 0;
-      z-index: 50;
-    }
-
-    .dashboard-main {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 55px 24px 80px;
-    }
-
-    .dashboard-top {
-      margin-bottom: 35px;
-    }
-
-    .dashboard-top small {
-      color: var(--accent);
-      font-weight: 700;
-      letter-spacing: .08em;
-    }
-
-    .dashboard-top h1 {
-      margin: 8px 0 8px;
-      font-family: Manrope, sans-serif;
-      font-size: clamp(32px, 5vw, 48px);
-    }
-
-    .dashboard-top p {
-      color: #777;
-      margin: 0;
-    }
-
-    .dashboard-actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 22px;
-      flex-wrap: wrap;
-    }
-
-    .dashboard-stats {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 18px;
-      margin-bottom: 35px;
-    }
-
-    .dashboard-stat {
-      border: 1px solid #e8e8e8;
-      border-radius: 18px;
-      padding: 25px;
-      background: #fff;
-    }
-
-    .dashboard-stat small {
-      display: block;
-      color: #777;
-      margin-bottom: 8px;
-    }
-
-    .dashboard-stat strong {
-      display: block;
-      font-size: 22px;
-      margin-bottom: 5px;
-    }
-
-    .dashboard-stat span {
-      color: #888;
-      font-size: 13px;
-    }
-
-    .dashboard-section {
-      margin-top: 38px;
-    }
-
-    .dashboard-section h3 {
-      margin-bottom: 15px;
-    }
-
-    .dashboard-card {
-      border: 1px solid #e8e8e8;
-      border-radius: 18px;
-      padding: 22px;
-      background: #fff;
-    }
-
-    .dashboard-divider {
-      border: 0;
-      border-top: 1px solid #eee;
-      margin: 42px 0;
-    }
-
-    /* Contacts */
-
-    .contact-list,
-    #savedContacts {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      width: 100%;
-      margin: 12px 0 24px;
-    }
-
-    .contact-card {
-      display: flex !important;
-      flex-direction: row !important;
-      align-items: center !important;
-      justify-content: space-between !important;
-      width: 100%;
-      min-height: 70px;
-      box-sizing: border-box;
-      gap: 20px;
-      padding: 14px 16px;
-      border: 1px solid #e8e8e8;
-      border-radius: 12px;
-      background: #fff;
-    }
-
-    .contact-card > div:first-child {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 3px;
-      min-width: 0;
-      flex: 1;
-    }
-
-    .contact-card > div:last-child {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      gap: 8px;
-      flex-shrink: 0;
-    }
-
-    .contact-card strong {
-      display: block;
-      font-size: 14px;
-    }
-
-    .contact-card span {
-      display: block;
-      font-size: 13px;
-      color: #777;
-    }
-
-    .contact-card small {
-      display: block;
-      font-size: 12px;
-      color: var(--accent);
-      font-weight: 600;
-    }
-
-    .contact-card .btn {
-      position: static !important;
-      margin: 0 !important;
-      white-space: nowrap;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .contact-form {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      align-items: end;
-    }
-
-    .contact-form label {
-      display: flex;
-      flex-direction: column;
-      gap: 7px;
-      font-size: 13px;
-      font-weight: 600;
-    }
-
-    .contact-form input {
-      width: 100%;
-      box-sizing: border-box;
-      padding: 12px 13px;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      font: inherit;
-    }
-
-    .contact-form button {
-      min-height: 44px;
-    }
-
-    .emergency-card {
-      display: grid;
-      gap: 12px;
-    }
-
-    .emergency-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 14px 16px;
-      border: 1px solid #eee;
-      border-radius: 12px;
-    }
-
-    .emergency-item strong {
-      display: block;
-    }
-
-    .emergency-item span {
-      color: #777;
-      font-size: 13px;
-    }
-
-    .number-only {
-      font-weight: 700;
-      font-size: 16px;
-    }
-
-    @media (max-width: 700px) {
-      .dashboard-stats {
-        grid-template-columns: 1fr;
-      }
-
-      .contact-form {
-        grid-template-columns: 1fr;
-      }
-
-      .contact-card {
-        align-items: flex-start !important;
-      }
-
-      .contact-card > div:last-child {
-        align-self: center;
-      }
-    }
-  </style>
 </head>
+
 
 <body>
 
-  <!-- =========================================================
-       LANDING PAGE
-       ========================================================= -->
 
-  <div id="landingPage">
+<!-- =====================================================
+     HEADER
+===================================================== -->
 
-    <header>
-      <a class="brand" href="#">● MindCampus</a>
+<header>
 
-      <nav>
-        <a href="#support">Support</a>
-        <a href="#how">How it works</a>
-        <a href="#institution">For institutions</a>
-      </nav>
+  <a class="brand" href="#">
+    ● MindCampus
+  </a>
 
-      <div class="actions">
 
-        <button class="btn ghost" id="loginBtn">
-          Log in
-        </button>
+  <nav>
 
-        <button class="btn primary" id="signupBtn">
-          Get started
-        </button>
+    <a href="#support">
+      Support
+    </a>
 
-        <div id="userMenu" class="hidden usermenu">
+    <a href="#how">
+      How it works
+    </a>
 
-          <button id="avatar" class="avatar">
-            C
-          </button>
+    <a href="#institution">
+      For institutions
+    </a>
 
-          <div id="drop" class="drop hidden">
+  </nav>
 
-            <b id="userLabel"></b>
 
-            <button id="dashboardBtn">
-              My dashboard
-            </button>
+  <div class="actions">
 
-            <button id="logoutBtn">
-              Log out
-            </button>
+    <button
+      class="btn ghost"
+      id="loginBtn"
+    >
+      Log in
+    </button>
 
-          </div>
 
-        </div>
+    <button
+      class="btn primary"
+      id="signupBtn"
+    >
+      Get started
+    </button>
 
-      </div>
-    </header>
 
+    <div
+      id="userMenu"
+      class="hidden usermenu"
+    >
 
-    <main>
-
-      <!-- HERO -->
-
-      <section class="hero">
-
-        <div>
-
-          <small>
-            STUDENT WELLBEING, REIMAGINED
-          </small>
-
-          <h1>
-            You don't have to carry
-            <span>college alone.</span>
-          </h1>
-
-          <p>
-            Confidential support for burnout, placement pressure,
-            loneliness and everyday student life — built around the
-            reality of residential campuses.
-          </p>
-
-          <div class="row">
-
-            <button class="btn primary big" id="heroSignup">
-              Create my account →
-            </button>
-
-            <button class="btn soft big" id="heroLogin">
-              I already have an account
-            </button>
-
-          </div>
-
-          <p class="trust">
-            ✓ Confidential　 ✓ Student-first　 ✓ Available 24/7
-          </p>
-
-        </div>
-
-
-        <div class="check">
-
-          <div class="mini">
-            MindCampus <span>●</span>
-          </div>
-
-          <h2>
-            How are you feeling today?
-          </h2>
-
-          <p>
-            A 30-second check-in can help you understand your week.
-          </p>
-
-          <div class="moods">
-
-            <button data-mood="Great">
-              😄
-              <small>Great</small>
-            </button>
-
-            <button data-mood="Okay">
-              🙂
-              <small>Okay</small>
-            </button>
-
-            <button data-mood="Low">
-              😕
-              <small>Low</small>
-            </button>
-
-            <button data-mood="Stressed">
-              😣
-              <small>Stressed</small>
-            </button>
-
-          </div>
-
-          <button class="btn dark full" id="checkin">
-            Save check-in
-          </button>
-
-          <p id="checkMsg" class="hint">
-            Log in to save your check-in.
-          </p>
-
-        </div>
-
-      </section>
-
-
-      <!-- SUPPORT -->
-
-      <section id="support">
-
-        <div class="head">
-
-          <div>
-
-            <small>
-              SUPPORT THAT FITS STUDENT LIFE
-            </small>
-
-            <h2>
-              One place. Different kinds of support.
-            </h2>
-
-          </div>
-
-          <p>
-            Choose what feels right today. You can change your mind anytime.
-          </p>
-
-        </div>
-
-
-        <div class="cards">
-
-          <article>
-
-            <b>◌</b>
-
-            <h3>
-              Talk to a professional
-            </h3>
-
-            <p>
-              Confidential sessions with licensed psychologists
-              through secure online support.
-            </p>
-
-            <button class="link book">
-              Book a session →
-            </button>
-
-          </article>
-
-
-          <article>
-
-            <b>24/7</b>
-
-            <h3>
-              Always-on support
-            </h3>
-
-            <p>
-              Reach support when campus is quiet, deadlines are close
-              or you simply need to talk.
-            </p>
-
-            <button class="link">
-              Explore resources →
-            </button>
-
-          </article>
-
-
-          <article>
-
-            <b>◎</b>
-
-            <h3>
-              Peer connection
-            </h3>
-
-            <p>
-              Student ambassadors help you find the right next step
-              without replacing professional care.
-            </p>
-
-            <button class="link">
-              See how it works →
-            </button>
-
-          </article>
-
-        </div>
-
-      </section>
-
-
-      <!-- HOW IT WORKS -->
-
-      <section id="how" class="alt">
-
-        <div class="center">
-
-          <small>
-            SIMPLE BY DESIGN
-          </small>
-
-          <h2>
-            From “I need help” to a next step.
-          </h2>
-
-        </div>
-
-
-        <div class="steps">
-
-          <div>
-            <b>01</b>
-            <h3>Check in</h3>
-            <p>Tell us how your week is going.</p>
-          </div>
-
-          <div>
-            <b>02</b>
-            <h3>Choose support</h3>
-            <p>Resources, peer support or a professional session.</p>
-          </div>
-
-          <div>
-            <b>03</b>
-            <h3>Keep moving</h3>
-            <p>Your private dashboard remembers your progress.</p>
-          </div>
-
-        </div>
-
-      </section>
-
-
-      <!-- INSTITUTION -->
-
-      <section id="institution" class="institution">
-
-        <div>
-
-          <small>
-            FOR COLLEGES
-          </small>
-
-          <h2>
-            Make wellbeing part of the campus infrastructure.
-          </h2>
-
-          <p>
-            MindCampus gives institutions a structured support layer
-            without exposing individual student conversations or check-ins.
-          </p>
-
-          <button class="btn light" id="demo">
-            Request an institution demo →
-          </button>
-
-        </div>
-
-
-        <div class="preview">
-
-          <b>
-            Campus wellbeing snapshot
-          </b>
-
-          <div class="bars">
-            <i></i>
-            <i></i>
-            <i></i>
-            <i></i>
-            <i></i>
-          </div>
-
-          <small>
-            Aggregated insights only
-          </small>
-
-        </div>
-
-      </section>
-
-
-      <!-- CTA -->
-
-      <section class="cta">
-
-        <h2>
-          A better semester starts with one small step.
-        </h2>
-
-        <p>
-          Create your private MindCampus account and make support easier to reach.
-        </p>
-
-        <button class="btn dark big" id="cta">
-          Join MindCampus →
-        </button>
-
-      </section>
-
-    </main>
-
-
-    <footer>
-      © 2026 MindCampus
-      <span>
-        Private by design · Built for students
-      </span>
-    </footer>
-
-  </div>
-
-
-  <!-- =========================================================
-       LOGIN / SIGNUP MODAL
-       ========================================================= -->
-
-  <div class="modal hidden" id="auth">
-
-    <div class="box">
-
-      <button class="close" data-close>
-        ×
+      <button
+        id="avatar"
+        class="avatar"
+      >
+        C
       </button>
 
-      <small id="authEyebrow">
-        WELCOME BACK
-      </small>
 
-      <h2 id="authTitle">
-        Log in to MindCampus
-      </h2>
+      <div
+        id="drop"
+        class="drop hidden"
+      >
 
-      <p>
-        Your dashboard, check-ins and appointments stay with your account.
-      </p>
+        <b id="userLabel"></b>
 
 
-      <form id="authForm">
-
-        <label id="nameWrap" class="hidden">
-          Full name
-          <input id="name">
-        </label>
-
-
-        <label>
-          Email
-          <input id="email" type="email" required>
-        </label>
-
-
-        <label>
-          Password
-          <input id="password" type="password" minlength="6" required>
-        </label>
-
-
-        <label id="collegeWrap" class="hidden">
-          College / institution
-          <input id="college">
-        </label>
-
-
-        <button class="btn primary full">
-          Log in
+        <button id="dashboardBtn">
+          My dashboard
         </button>
 
-      </form>
 
-
-      <p id="authMsg" class="msg"></p>
-
-      <button id="switch" class="link">
-        New here? Create an account
-      </button>
-
-    </div>
-
-  </div>
-
-
-  <!-- =========================================================
-       FULL PAGE DASHBOARD
-       ========================================================= -->
-
-  <div id="dashboardPage" class="dashboard-page hidden">
-
-
-    <header>
-
-      <a class="brand" href="#" id="dashboardBrand">
-        ● MindCampus
-      </a>
-
-
-      <nav>
-        <a href="#dashboardHome">
-          Dashboard
-        </a>
-
-        <a href="#dashboardContacts">
-          Contacts
-        </a>
-
-        <a href="#dashboardHistory">
-          Check-ins
-        </a>
-      </nav>
-
-
-      <div class="actions">
-
-        <div class="usermenu">
-
-          <button id="dashboardAvatar" class="avatar">
-            C
-          </button>
-
-        </div>
-
-        <button class="btn ghost" id="dashboardLogout">
+        <button id="logoutBtn">
           Log out
         </button>
 
       </div>
 
-    </header>
+    </div>
+
+  </div>
+
+</header>
 
 
-    <main class="dashboard-main" id="dashboardHome">
+
+<main>
 
 
-      <!-- DASHBOARD INTRO -->
+<!-- =====================================================
+     HERO
+===================================================== -->
 
-      <div class="dashboard-top">
+<section class="hero">
+
+  <div>
+
+    <small>
+      STUDENT WELLBEING, REIMAGINED
+    </small>
+
+
+    <h1>
+      You don't have to carry
+      <span>college alone.</span>
+    </h1>
+
+
+    <p>
+      Confidential support for burnout, placement pressure,
+      loneliness and everyday student life — built around the
+      reality of residential campuses.
+    </p>
+
+
+    <div class="row">
+
+      <button
+        class="btn primary big"
+        id="heroSignup"
+      >
+        Create my account →
+      </button>
+
+
+      <button
+        class="btn soft big"
+        id="heroLogin"
+      >
+        I already have an account
+      </button>
+
+    </div>
+
+
+    <p class="trust">
+      ✓ Confidential　 ✓ Student-first　 ✓ Available 24/7
+    </p>
+
+  </div>
+
+
+
+  <!-- CHECK-IN -->
+
+  <div class="check">
+
+    <div class="mini">
+      MindCampus <span>●</span>
+    </div>
+
+
+    <h2>
+      How are you feeling today?
+    </h2>
+
+
+    <p>
+      A 30-second check-in can help you understand your week.
+    </p>
+
+
+    <div class="moods">
+
+      <button data-mood="Great">
+        😄
+        <small>Great</small>
+      </button>
+
+
+      <button data-mood="Okay">
+        🙂
+        <small>Okay</small>
+      </button>
+
+
+      <button data-mood="Low">
+        😕
+        <small>Low</small>
+      </button>
+
+
+      <button data-mood="Stressed">
+        😣
+        <small>Stressed</small>
+      </button>
+
+    </div>
+
+
+    <button
+      class="btn dark full"
+      id="checkin"
+    >
+      Save check-in
+    </button>
+
+
+    <p
+      id="checkMsg"
+      class="hint"
+    >
+      Log in to save your check-in.
+    </p>
+
+  </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     SUPPORT
+===================================================== -->
+
+<section id="support">
+
+  <div class="head">
+
+    <div>
+
+      <small>
+        SUPPORT THAT FITS STUDENT LIFE
+      </small>
+
+
+      <h2>
+        One place. Different kinds of support.
+      </h2>
+
+    </div>
+
+
+    <p>
+      Choose what feels right today. You can change your mind anytime.
+    </p>
+
+  </div>
+
+
+
+  <div class="cards">
+
+
+    <article>
+
+      <b>◌</b>
+
+
+      <h3>
+        Talk to a professional
+      </h3>
+
+
+      <p>
+        Confidential sessions with licensed psychologists
+        through secure online support.
+      </p>
+
+
+      <button class="link book">
+        Book a session →
+      </button>
+
+    </article>
+
+
+
+    <article>
+
+      <b>24/7</b>
+
+
+      <h3>
+        Always-on support
+      </h3>
+
+
+      <p>
+        Reach support when campus is quiet, deadlines are close
+        or you simply need to talk.
+      </p>
+
+
+      <button class="link">
+        Explore resources →
+      </button>
+
+    </article>
+
+
+
+    <article>
+
+      <b>◎</b>
+
+
+      <h3>
+        Peer connection
+      </h3>
+
+
+      <p>
+        Student ambassadors help you find the right next step
+        without replacing professional care.
+      </p>
+
+
+      <button class="link">
+        See how it works →
+      </button>
+
+    </article>
+
+  </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     HOW IT WORKS
+===================================================== -->
+
+<section
+  id="how"
+  class="alt"
+>
+
+  <div class="center">
+
+    <small>
+      SIMPLE BY DESIGN
+    </small>
+
+
+    <h2>
+      From “I need help” to a next step.
+    </h2>
+
+  </div>
+
+
+  <div class="steps">
+
+
+    <div>
+
+      <b>01</b>
+
+
+      <h3>
+        Check in
+      </h3>
+
+
+      <p>
+        Tell us how your week is going.
+      </p>
+
+    </div>
+
+
+
+    <div>
+
+      <b>02</b>
+
+
+      <h3>
+        Choose support
+      </h3>
+
+
+      <p>
+        Resources, peer support or a professional session.
+      </p>
+
+    </div>
+
+
+
+    <div>
+
+      <b>03</b>
+
+
+      <h3>
+        Keep moving
+      </h3>
+
+
+      <p>
+        Your private dashboard remembers your progress.
+      </p>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     INSTITUTION
+===================================================== -->
+
+<section
+  id="institution"
+  class="institution"
+>
+
+  <div>
+
+    <small>
+      FOR COLLEGES
+    </small>
+
+
+    <h2>
+      Make wellbeing part of the campus infrastructure.
+    </h2>
+
+
+    <p>
+      MindCampus gives institutions a structured support layer
+      without exposing individual student conversations or check-ins.
+    </p>
+
+
+    <button
+      class="btn light"
+      id="demo"
+    >
+      Request an institution demo →
+    </button>
+
+  </div>
+
+
+
+  <div class="preview">
+
+    <b>
+      Campus wellbeing snapshot
+    </b>
+
+
+    <div class="bars">
+
+      <i></i>
+      <i></i>
+      <i></i>
+      <i></i>
+      <i></i>
+
+    </div>
+
+
+    <small>
+      Aggregated insights only
+    </small>
+
+  </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     CTA
+===================================================== -->
+
+<section class="cta">
+
+  <h2>
+    A better semester starts with one small step.
+  </h2>
+
+
+  <p>
+    Create your private MindCampus account and make support easier to reach.
+  </p>
+
+
+  <button
+    class="btn dark big"
+    id="cta"
+  >
+    Join MindCampus →
+  </button>
+
+</section>
+
+
+</main>
+
+
+
+<!-- =====================================================
+     FOOTER
+===================================================== -->
+
+<footer>
+
+  © 2026 MindCampus
+
+  <span>
+    Private by design · Built for students
+  </span>
+
+</footer>
+
+
+
+<!-- =====================================================
+     LOGIN / SIGNUP MODAL
+===================================================== -->
+
+<div
+  class="modal hidden"
+  id="auth"
+>
+
+  <div class="box">
+
+
+    <button
+      class="close"
+      data-close
+    >
+      ×
+    </button>
+
+
+    <small id="authEyebrow">
+      WELCOME BACK
+    </small>
+
+
+    <h2 id="authTitle">
+      Log in to MindCampus
+    </h2>
+
+
+    <p>
+      Your dashboard, check-ins and appointments stay with your account.
+    </p>
+
+
+    <form id="authForm">
+
+
+      <label
+        id="nameWrap"
+        class="hidden"
+      >
+
+        Full name
+
+        <input id="name">
+
+      </label>
+
+
+
+      <label>
+
+        Email
+
+        <input
+          id="email"
+          type="email"
+          required
+        >
+
+      </label>
+
+
+
+      <label>
+
+        Password
+
+        <input
+          id="password"
+          type="password"
+          minlength="6"
+          required
+        >
+
+      </label>
+
+
+
+      <label
+        id="collegeWrap"
+        class="hidden"
+      >
+
+        College / institution
+
+        <input id="college">
+
+      </label>
+
+
+
+      <button
+        class="btn primary full"
+      >
+        Log in
+      </button>
+
+    </form>
+
+
+    <p
+      id="authMsg"
+      class="msg"
+    ></p>
+
+
+    <button
+      id="switch"
+      class="link"
+    >
+      New here? Create an account
+    </button>
+
+  </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     DASHBOARD
+===================================================== -->
+
+<div
+  class="modal hidden"
+  id="dash"
+>
+
+  <div class="box wide">
+
+
+    <button
+      class="close"
+      data-close
+    >
+      ×
+    </button>
+
+
+    <small>
+      MY MINDCAMPUS
+    </small>
+
+
+    <h2 id="welcome">
+      Welcome back 👋
+    </h2>
+
+
+
+    <!-- DASHBOARD STATS -->
+
+    <div class="stats">
+
+
+      <div>
 
         <small>
-          MY MINDCAMPUS
+          Latest check-in
         </small>
 
-        <h1 id="welcome">
-          Welcome back 👋
-        </h1>
 
-        <p>
-          Your private student wellbeing space.
-        </p>
+        <strong id="latest">
+          —
+        </strong>
 
-        <div class="dashboard-actions">
 
-          <button class="btn primary" id="bookBtn">
-            Book a session
-          </button>
+        <span id="latestDate">
+          No check-ins yet
+        </span>
 
-          <button class="btn soft" id="refresh">
-            Refresh
-          </button>
+      </div>
+
+
+
+      <div>
+
+        <small>
+          Upcoming session
+        </small>
+
+
+        <strong id="next">
+          —
+        </strong>
+
+
+        <span id="nextDate">
+          No appointment booked
+        </span>
+
+      </div>
+
+    </div>
+
+
+
+    <!-- EXISTING BUTTONS -->
+
+    <button
+      class="btn primary"
+      id="bookBtn"
+    >
+      Book a session
+    </button>
+
+
+    <button
+      class="btn soft"
+      id="refresh"
+    >
+      Refresh
+    </button>
+
+
+
+    <!-- RECENT CHECK-INS -->
+
+    <h3>
+      Recent check-ins
+    </h3>
+
+
+    <div id="history"></div>
+
+
+
+    <!-- =================================================
+         EMERGENCY & CAMPUS CONTACTS
+         NO CALL BUTTONS
+    ================================================= -->
+
+    <hr>
+
+
+    <h3>
+      Emergency & Campus Contacts
+    </h3>
+
+
+    <div class="contact-list">
+
+
+      <!-- EMERGENCY -->
+
+      <div class="contact-card">
+
+        <div>
+
+          <strong>
+            🚨 Emergency Services
+          </strong>
+
+          <span>
+            112
+          </span>
 
         </div>
 
       </div>
 
 
-      <!-- STATS -->
 
-      <div class="dashboard-stats">
+      <!-- AMBULANCE -->
 
-        <div class="dashboard-stat">
+      <div class="contact-card">
 
-          <small>
-            Latest check-in
-          </small>
+        <div>
 
-          <strong id="latest">
-            —
+          <strong>
+            🚑 Ambulance
           </strong>
 
-          <span id="latestDate">
-            No check-ins yet
-          </span>
-
-        </div>
-
-
-        <div class="dashboard-stat">
-
-          <small>
-            Upcoming session
-          </small>
-
-          <strong id="next">
-            —
-          </strong>
-
-          <span id="nextDate">
-            No appointment booked
+          <span>
+            108
           </span>
 
         </div>
@@ -815,344 +833,340 @@
       </div>
 
 
-      <!-- RECENT CHECK-INS -->
 
-      <section class="dashboard-section" id="dashboardHistory">
+      <!-- BATCH COORDINATOR -->
 
-        <h3>
-          Recent check-ins
-        </h3>
+      <div class="contact-card">
 
-        <div class="dashboard-card">
+        <div>
 
-          <div id="history">
-            No check-ins yet.
-          </div>
+          <strong>
+            👩‍🏫 Arul Mary
+          </strong>
 
-        </div>
-
-      </section>
-
-
-      <hr class="dashboard-divider">
-
-
-      <!-- EMERGENCY & CAMPUS CONTACTS -->
-
-      <section class="dashboard-section" id="dashboardContacts">
-
-        <h3>
-          Emergency & Campus Contacts
-        </h3>
-
-        <div class="dashboard-card emergency-card">
-
-
-          <div class="emergency-item">
-
-            <div>
-              <strong>
-                Emergency Services
-              </strong>
-
-              <span>
-                National emergency number
-              </span>
-            </div>
-
-            <div class="number-only">
-              112
-            </div>
-
-          </div>
-
-
-          <div class="emergency-item">
-
-            <div>
-              <strong>
-                Ambulance
-              </strong>
-
-              <span>
-                Emergency medical assistance
-              </span>
-            </div>
-
-            <div class="number-only">
-              108
-            </div>
-
-          </div>
-
-
-          <div class="emergency-item">
-
-            <div>
-              <strong>
-                Arul Mary
-              </strong>
-
-              <span>
-                Batch Coordinator · +91 80561 84320
-              </span>
-            </div>
-
-            <div class="number-only">
-              +91 80561 84320
-            </div>
-
-          </div>
-
+          <span>
+            Batch Coordinator · +91 80561 84320
+          </span>
 
         </div>
 
-      </section>
+      </div>
 
-
-      <!-- SAVED CONTACTS -->
-
-      <section class="dashboard-section">
-
-        <h3>
-          My Saved Contacts
-        </h3>
-
-        <div class="dashboard-card">
-
-
-          <form id="contactForm" class="contact-form">
-
-            <label>
-              Name
-
-              <input
-                id="contactName"
-                type="text"
-                placeholder="Contact name"
-                required
-              >
-
-            </label>
-
-
-            <label>
-              Relationship
-
-              <input
-                id="contactRelation"
-                type="text"
-                placeholder="Friend, mentor, classmate..."
-                required
-              >
-
-            </label>
-
-
-            <label>
-              Phone number
-
-              <input
-                id="contactPhone"
-                type="tel"
-                placeholder="+91 XXXXX XXXXX"
-                required
-              >
-
-            </label>
-
-
-            <button class="btn primary">
-              Add contact
-            </button>
-
-          </form>
-
-
-          <p id="contactMsg" class="msg"></p>
-
-
-          <div id="savedContacts">
-
-            <p class="hint">
-              No saved contacts yet.
-            </p>
-
-          </div>
-
-
-        </div>
-
-      </section>
-
-
-    </main>
-
-
-    <footer>
-      © 2026 MindCampus
-      <span>
-        Private by design · Built for students
-      </span>
-    </footer>
-
-  </div>
-
-
-  <!-- =========================================================
-       BOOKING MODAL
-       ========================================================= -->
-
-  <div class="modal hidden" id="booking">
-
-    <div class="box">
-
-      <button class="close" data-close>
-        ×
-      </button>
-
-      <small>
-        PRIVATE APPOINTMENT
-      </small>
-
-      <h2>
-        Book a support session
-      </h2>
-
-
-      <form id="bookingForm">
-
-        <label>
-          Support type
-
-          <select id="type">
-
-            <option>
-              Psychologist session
-            </option>
-
-            <option>
-              Placement stress support
-            </option>
-
-            <option>
-              General wellbeing
-            </option>
-
-          </select>
-
-        </label>
-
-
-        <label>
-          Date
-
-          <input
-            id="date"
-            type="date"
-            required
-          >
-
-        </label>
-
-
-        <label>
-          Time
-
-          <input
-            id="time"
-            type="time"
-            required
-          >
-
-        </label>
-
-
-        <button class="btn primary full">
-          Save appointment
-        </button>
-
-      </form>
-
-
-      <p id="bookMsg" class="msg"></p>
 
     </div>
 
-  </div>
 
 
-  <!-- =========================================================
-       INSTITUTION DEMO MODAL
-       ========================================================= -->
+    <!-- =================================================
+         STUDENT SAVED CONTACTS
+    ================================================= -->
 
-  <div class="modal hidden" id="demoModal">
+    <h3>
+      My Saved Contacts
+    </h3>
 
-    <div class="box">
 
-      <button class="close" data-close>
-        ×
+    <p class="hint">
+      Save trusted friends, classmates, roommates or family
+      members for quick access later.
+    </p>
+
+
+    <form
+      id="contactForm"
+      class="contact-form"
+    >
+
+
+      <label>
+
+        Name
+
+        <input
+          id="contactName"
+          type="text"
+          placeholder="Peer / friend name"
+          required
+        >
+
+      </label>
+
+
+
+      <label>
+
+        Relationship
+
+        <select id="contactRelation">
+
+          <option>
+            Friend
+          </option>
+
+          <option>
+            Classmate
+          </option>
+
+          <option>
+            Roommate
+          </option>
+
+          <option>
+            Family
+          </option>
+
+          <option>
+            Other
+          </option>
+
+        </select>
+
+      </label>
+
+
+
+      <label>
+
+        Phone number
+
+        <input
+          id="contactPhone"
+          type="tel"
+          placeholder="+91 XXXXX XXXXX"
+          required
+        >
+
+      </label>
+
+
+
+      <button
+        class="btn primary"
+        type="submit"
+      >
+        Save Contact
       </button>
 
-      <small>
-        INSTITUTIONAL DEMO
-      </small>
-
-      <h2>
-        See MindCampus for your campus.
-      </h2>
+    </form>
 
 
-      <form id="demoForm">
-
-        <label>
-          Name
-
-          <input required>
-
-        </label>
+    <p
+      id="contactMsg"
+      class="msg"
+    ></p>
 
 
-        <label>
-          Institution email
+    <!-- SAVED CONTACTS APPEAR HERE -->
 
-          <input
-            type="email"
-            required
-          >
+    <div id="savedContacts"></div>
 
-        </label>
-
-
-        <label>
-          Institution
-
-          <input required>
-
-        </label>
-
-
-        <button class="btn dark full">
-          Request demo
-        </button>
-
-      </form>
-
-
-      <p id="demoMsg" class="msg"></p>
-
-    </div>
 
   </div>
 
+</div>
 
-  <!-- SUPABASE -->
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <!-- YOUR JAVASCRIPT -->
+<!-- =====================================================
+     BOOKING MODAL
+===================================================== -->
 
-  <script src="script.js"></script>
+<div
+  class="modal hidden"
+  id="booking"
+>
+
+  <div class="box">
+
+
+    <button
+      class="close"
+      data-close
+    >
+      ×
+    </button>
+
+
+    <small>
+      PRIVATE APPOINTMENT
+    </small>
+
+
+    <h2>
+      Book a support session
+    </h2>
+
+
+    <form id="bookingForm">
+
+
+      <label>
+
+        Support type
+
+        <select id="type">
+
+          <option>
+            Psychologist session
+          </option>
+
+          <option>
+            Placement stress support
+          </option>
+
+          <option>
+            General wellbeing
+          </option>
+
+        </select>
+
+      </label>
+
+
+
+      <label>
+
+        Date
+
+        <input
+          id="date"
+          type="date"
+          required
+        >
+
+      </label>
+
+
+
+      <label>
+
+        Time
+
+        <input
+          id="time"
+          type="time"
+          required
+        >
+
+      </label>
+
+
+
+      <button
+        class="btn primary full"
+      >
+        Save appointment
+      </button>
+
+    </form>
+
+
+    <p
+      id="bookMsg"
+      class="msg"
+    ></p>
+
+  </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     INSTITUTION DEMO MODAL
+===================================================== -->
+
+<div
+  class="modal hidden"
+  id="demoModal"
+>
+
+  <div class="box">
+
+
+    <button
+      class="close"
+      data-close
+    >
+      ×
+    </button>
+
+
+    <small>
+      INSTITUTIONAL DEMO
+    </small>
+
+
+    <h2>
+      See MindCampus for your campus.
+    </h2>
+
+
+    <form id="demoForm">
+
+
+      <label>
+
+        Name
+
+        <input required>
+
+      </label>
+
+
+
+      <label>
+
+        Institution email
+
+        <input
+          type="email"
+          required
+        >
+
+      </label>
+
+
+
+      <label>
+
+        Institution
+
+        <input required>
+
+      </label>
+
+
+
+      <button
+        class="btn dark full"
+      >
+        Request demo
+      </button>
+
+    </form>
+
+
+    <p
+      id="demoMsg"
+      class="msg"
+    ></p>
+
+  </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     SUPABASE
+===================================================== -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="script.js"></script>
+
 
 </body>
+
 </html>
